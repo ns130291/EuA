@@ -15,7 +15,7 @@ window.onDomReady = function(fn) {
             }
         };
     }
-}
+};
 
 /**
  * gibt alle childNodes vom Typ Element zurück
@@ -28,18 +28,19 @@ HTMLElement.prototype.getChildElements = function()
 
     for (var i = 0; i < tags.length; i++)
     {
-        if (tags[i].nodeType == 1)
+        if (tags[i].nodeType === 1)
         {
             a.push(tags[i]);
         }
     }
     return a;
-}
+};
 
 window.onDomReady(function() {
     holeAusgaben();
-})
+});
 
+//TODO: Warum ist das global??
 var json = null;
 
 /**
@@ -77,59 +78,26 @@ function holeAusgaben(month, year) {
     req.setRequestHeader("Content-length", params.length);
     req.setRequestHeader("Connection", "close");
     req.onreadystatechange = function() {//Call a function when the state changes.
-        if (req.readyState == 4) {
-            if (req.status == 200) {
+        if (req.readyState === 4) {
+            if (req.status === 200) {
                 //alert("geht");
                 json = JSON.parse(req.responseText);
                 //json=eval(req.responseText);
                 ausgabenAnzeigen();
-            } else if (req.status == 404) {
+            } else if (req.status === 404) {
 
-            } else if (req.status == 500) {
+            } else if (req.status === 500) {
 
             }
         }
-    }
+    };
     req.send(params);
 }
 
 function ausgabenAnzeigen() {
     var x;
     for (x in json) {
-        var element = document.createElement("div");
-        //element.innerHTML=JSON.stringify(json[x]);
-        element.setAttribute("id", json[x].idausgabe);
-        element.setAttribute("data-id", json[x].idausgabe);
-        element.className = "tr";
-        var html = '<div class="td">';
-        html += dateToLocal(json[x].datum);
-        html += '</div>';
-        html += '<div class="td">';
-        if (json[x].kategorie) {
-            html += json[x].kategorie;
-        }
-        html += '</div>';
-        html += '<div class="td">';
-        html += json[x].art;
-        html += '</div>';
-        html += '<div class="preis td">';
-        if (json[x].preis.indexOf(".")) {
-            html += json[x].preis.replace(".", ",");
-        } else {
-            html += json[x].preis;
-        }
-        html += " &euro;";
-        html += '</div>';
-        html += '<div class="td">';
-        if (json[x].beschreibung) {
-            html += json[x].beschreibung;
-        }
-        html += '</div>';
-        html += '<div class="td">';
-        html += '<div class="remove">&times;</div>';
-        html += '</div>';
-        element.innerHTML = html;
-        element.getElementsByClassName("remove")[0].addEventListener("click", removeEntry, false);
+        var element = createRow(json[x].idausgabe, dateToLocal(json[x].datum), (json[x].kategorie) ? json[x].kategorie : "", json[x].art, (json[x].preis.indexOf(".")) ? json[x].preis.replace(".", ",") : json[x].preis, (json[x].beschreibung) ? json[x].beschreibung : "");
         document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
     }
 }
@@ -206,16 +174,16 @@ function ausgabenSpeichern() {
 
     var error = "";
     var showError = false;
-    if (datum == "") {
+    if (datum === "") {
         error += "Datum fehlt<br>";
         showError = true;
     }
-    if (art == "") {
-        error += "Art der Ausgabe fehlt<br>"
+    if (art === "") {
+        error += "Art der Ausgabe fehlt<br>";
         showError = true;
     }
-    if (preis == "") {
-        error += "Preis fehlt<br>"
+    if (preis === "") {
+        error += "Preis fehlt<br>";
         showError = true;
     }
     preis = preis + " &euro;";
@@ -227,7 +195,7 @@ function ausgabenSpeichern() {
         //errorElement.style.setAttribute("display", "block");
     } else {
         errorElement.style = "";
-        //Irgendwas geht da schief, abe rich wei� nicht was:-(
+        //Irgendwas geht da schief, aber ich weiß nicht was:-(
         //document.getElementById("error").style.removeAttribute("display");    
 
         //nur noch abspeichern... ;-) so mittels xmlhttprequest und so zeugs
@@ -253,36 +221,14 @@ function ausgabenSpeichern() {
         req.setRequestHeader("Connection", "close");
 
         req.onreadystatechange = function() {//Call a function when the state changes.
-            if (req.readyState == 4) {
-                if (req.status == 200) {
+            if (req.readyState === 4) {
+                if (req.status === 200) {
                     //alert(req.responseText);
                     id = req.responseText;
 
                     //id aus antwort des queries
-                    var element = document.createElement("div");
-                    element.setAttribute("id", id);
-                    element.setAttribute("data-id", id);
-                    element.className = "tr new";
-                    var html = '<div class="td">';
-                    html += datum;
-                    html += '</div>';
-                    html += '<div class="td">';
-                    html += kategorie;
-                    html += '</div>';
-                    html += '<div class="td">';
-                    html += art;
-                    html += '</div>';
-                    html += '<div class="preis td">';
-                    html += preis;
-                    html += '</div>';
-                    html += '<div class="td">';
-                    html += beschreibung;
-                    html += '</div>';
-                    html += '<div class="td">';
-                    html += '<div class="remove">&times;</div>';
-                    html += '</div>';
-                    element.innerHTML = html;
-                    element.getElementsByClassName("remove")[0].addEventListener("click", removeEntry, false);
+                    var element = createRow(id, datum, kategorie, art, preis, beschreibung);
+                    element.className += " new";
                     document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
 
                     datumInput.value = "";
@@ -292,7 +238,7 @@ function ausgabenSpeichern() {
                     beschreibungInput.value = "";
                 }
             }
-        }
+        };
         req.send(params);
     }
 }
@@ -314,3 +260,80 @@ function localToDate(date) {
     var a = date.split(".");
     return a[2] + "-" + a[1] + "-" + a[0];
 }
+
+function createRow(id, datum, kategorie, art, preis, beschreibung) {
+    var element = document.createElement("div");
+    element.setAttribute("id", id);
+    element.setAttribute("data-id", id);
+    element.className = "tr";
+    var html = '<div class="td">';
+    html += datum;
+    html += '</div>';
+    html += '<div class="td">';
+    html += kategorie;
+    html += '</div>';
+    html += '<div class="td">';
+    html += art;
+    html += '</div>';
+    html += '<div class="preis td">';
+    html += preis;
+    html += '</div>';
+    html += '<div class="td">';
+    html += beschreibung;
+    html += '</div>';
+    html += '<div class="td">';
+    html += '<div class="remove">&times;</div>';
+    html += '<div class="edit">edit</div>';
+    html += '</div>';
+    element.innerHTML = html;
+    element.getElementsByClassName("remove")[0].addEventListener("click", removeEntry, false);
+    element.getElementsByClassName("edit")[0].addEventListener("click", editEntry, false);
+    return element;
+}
+
+function editEntry(e){
+    var el = e.target;
+    var ausgabenElement = el.parentNode.parentNode;
+    
+    for(var i = 0; i < el.parentNode.childNodes.length; i++){
+        el.parentNode.childNodes[i].style.display = "none";
+    }
+    
+    var update = document.createElement("div");
+    update.innerHTML= "Update";
+    update.addEventListener("click", updateEntry, "false");
+    update.className = "update";
+    
+    var cancel = document.createElement("div");
+    cancel.innerHTML = "&times;";
+    cancel.addEventListener("click", cancelEditEntry, "false");
+    cancel.className = "cancel";
+    
+    el.parentNode.appendChild(update);
+    el.parentNode.appendChild(cancel);   
+    
+    //TODO: jedes child einzeln behandeln
+    for(var i = 0; i < (ausgabenElement.childNodes.length-1); i++){
+        if(ausgabenElement.childNodes[i].className.contains("td")){
+            alert("TD in if");
+            ausgabenElement.childNodes[i].innerHTML = '<input type="text" value="'+ausgabenElement.childNodes[i].innerHTML+'">';
+        }
+    }
+}
+
+function cancelEditEntry(e){    
+    var el = e.target;
+    var parent = el.parentNode;
+    parent.removeChild(parent.getElementsByClassName("update")[0]);
+    parent.removeChild(parent.getElementsByClassName("cancel")[0]);
+    
+    for(var i = 0; i < parent.childNodes.length; i++){
+        parent.childNodes[i].style.display = "";
+    }
+    //TODO input wieder in divs umwandeln
+}
+
+function updateEntry(e){
+    //TODO abspeichern
+}
+

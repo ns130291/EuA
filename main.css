@@ -39,10 +39,10 @@ html, body{
 }
 
 .error{
-  background-color: #ff2222;
-  padding: 5px;
-  margin-bottom: 5px;
-  border-radius: 5px;
+    background-color: #ff2222;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 5px;
 }
 
 .right{
@@ -61,6 +61,15 @@ html, body{
 
 .new{
     background-color: green;
+}
+.remove, .edit, .cancel, .update{
+    cursor: pointer;
+    display: inline-block;
+    border: 1px solid transparent;
+    margin-left: 5px;
+}
+.remove:hover, .edit:hover, .cancel:hover, .update:hover{
+    border: 1px solid black;
 }
 
 @media (min-width:600px){
@@ -83,9 +92,6 @@ html, body{
     #error{
         display: none;
         color: red;
-    }
-    .remove{
-        cursor: pointer;
     }
 
     div.table {
