@@ -50,19 +50,20 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                             </div>
                             <div id="input" class="tr">
                                 <div class="td">
-                                    <input size="10" type="date"></input>
+                                    <input size="10" type="date">
                                 </div>
                                 <div class="td">
-                                    <input placeholder="Benzin, Essen, etc."type="text" autocomplete="off"></input>
+                                    <input placeholder="Benzin, Essen, etc."type="text" autocomplete="off">
                                 </div>
                                 <div class="td">
-                                    <input placeholder="Edeka, Döner, etc."type="text"></input>
+                                    <input placeholder="Edeka, Döner, etc."type="text">
                                 </div>
                                 <div class="td">
-                                    <input size="10" class="preis" placeholder="Preis in &euro;" type="number" min="0.01" step="0.01"></input>
+                                    <input size="10" class="preis" placeholder="Preis in &euro;" type="number" min="0.01" step="0.01">
+                                    <span>&euro;</span>
                                 </div>
                                 <div class="td">
-                                    <textarea placeholder="mit Vanessa, etc." rows="1"></textarea>
+                                    <input placeholder="mit Vanessa, etc." type="text">
                                 </div>
                                 <div class="td">
                                     <div id="plusbutton" onclick="ausgabenSpeichern()">enter</div>

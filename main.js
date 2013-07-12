@@ -186,7 +186,6 @@ function ausgabenSpeichern() {
         error += "Preis fehlt<br>";
         showError = true;
     }
-    preis = preis + " &euro;";
 
     var errorElement = document.getElementById("error");
     if (showError) {
@@ -276,7 +275,7 @@ function createRow(id, datum, kategorie, art, preis, beschreibung) {
     html += art;
     html += '</div>';
     html += '<div class="preis td">';
-    html += preis;
+    html += preis + ' &euro;';
     html += '</div>';
     html += '<div class="td">';
     html += beschreibung;
@@ -291,49 +290,54 @@ function createRow(id, datum, kategorie, art, preis, beschreibung) {
     return element;
 }
 
-function editEntry(e){
+function editEntry(e) {
     var el = e.target;
     var ausgabenElement = el.parentNode.parentNode;
-    
-    for(var i = 0; i < el.parentNode.childNodes.length; i++){
+
+    for (var i = 0; i < el.parentNode.childNodes.length; i++) {
         el.parentNode.childNodes[i].style.display = "none";
     }
-    
+
     var update = document.createElement("div");
-    update.innerHTML= "Update";
+    update.innerHTML = "Update";
     update.addEventListener("click", updateEntry, "false");
     update.className = "update";
-    
+
     var cancel = document.createElement("div");
     cancel.innerHTML = "&times;";
     cancel.addEventListener("click", cancelEditEntry, "false");
     cancel.className = "cancel";
-    
+
     el.parentNode.appendChild(update);
-    el.parentNode.appendChild(cancel);   
-    
+    el.parentNode.appendChild(cancel);
+
     //TODO: jedes child einzeln behandeln
-    for(var i = 0; i < (ausgabenElement.childNodes.length-1); i++){
-        if(ausgabenElement.childNodes[i].className.contains("td")){
-            alert("TD in if");
-            ausgabenElement.childNodes[i].innerHTML = '<input type="text" value="'+ausgabenElement.childNodes[i].innerHTML+'">';
+    for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
+        if (ausgabenElement.childNodes[i].className.contains("td")) {
+            //alert("TD in if");
+            if (ausgabenElement.childNodes[i].classList.contains('preis')) {
+                var preis = ausgabenElement.childNodes[i].innerHTML.split(' ')[0];
+                ausgabenElement.childNodes[i].innerHTML = '<input size="10" class="preis" placeholder="Preis in &euro;" type="number" min="0.01" step="0.01" value="' + preis + '"><span>&euro;</span>';
+            } else {
+                ausgabenElement.childNodes[i].innerHTML = '<input type="text" value="' + ausgabenElement.childNodes[i].innerHTML + '">';
+            }
         }
     }
 }
 
-function cancelEditEntry(e){    
+function cancelEditEntry(e) {
     var el = e.target;
     var parent = el.parentNode;
     parent.removeChild(parent.getElementsByClassName("update")[0]);
     parent.removeChild(parent.getElementsByClassName("cancel")[0]);
-    
-    for(var i = 0; i < parent.childNodes.length; i++){
+
+    for (var i = 0; i < parent.childNodes.length; i++) {
         parent.childNodes[i].style.display = "";
     }
     //TODO input wieder in divs umwandeln
 }
 
-function updateEntry(e){
+function updateEntry(e) {
     //TODO abspeichern
 }
 
