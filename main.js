@@ -1,4 +1,31 @@
 
+$(document).ready(function() {
+    $("#next-month").click(naechsterMonat);
+    $("#previous-month").click(vorherigerMonat);
+    $("#spendings").click(uebersichtMonate);
+});
+
+function uebersichtMonate() {
+    $.post('getAusgabenUebersicht.php', function(data) {
+        var result = JSON.parse(data);
+        if (!result.error) {
+            if (result.ausgaben) {
+                var el = $("<div>").attr("id", "month-overview").click(function() {
+                    $(this).remove();
+                    return false;
+                });
+                var ausgaben = result.ausgaben;
+                for (var x in ausgaben) {
+                    var tempDate = moment([ausgaben[x].jahr, ausgaben[x].monat - 1]);
+                    var preis = (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis;
+                    $("<div>").html(tempDate.format("MMM YYYY") + ' ' + preis + ' €<br>').appendTo(el);
+                }
+                $("#spendings").append(el);
+            }
+        }
+    });
+}
+
 window.onDomReady = function(fn) {
     //W3C-compliant browser
     if (document.addEventListener) {
@@ -42,6 +69,8 @@ window.onDomReady(function() {
 
 //TODO: Warum ist das global??
 var json = null;
+moment.lang("de");
+var datum = moment();
 
 /**
  * @return XMLHttpRequest
@@ -62,17 +91,10 @@ function initRequest() {
  * @param month Monat, für den die Ausgaben abgerufen werden sollen
  * @param year Jahr, für das die Ausgaben abgerufen werden sollen
  */
-function holeAusgaben(month, year) {
-    var date = new Date();
-    if (!month) {
-        month = date.getMonth() + 1;
-    }
-    if (!year) {
-        year = date.getFullYear();
-    }
+function holeAusgaben() {
     var req = initRequest();
     var url = "getAusgaben.php";
-    var params = "month=" + month + "&year=" + year;
+    var params = "month=" + (datum.month() + 1) + "&year=" + datum.year();
     req.open("post", url, true);
     req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
     req.setRequestHeader("Content-length", params.length);
@@ -80,10 +102,21 @@ function holeAusgaben(month, year) {
     req.onreadystatechange = function() {//Call a function when the state changes.
         if (req.readyState === 4) {
             if (req.status === 200) {
-                //alert("geht");
+                //alert(req.responseText);
                 json = JSON.parse(req.responseText);
                 //json=eval(req.responseText);
                 ausgabenAnzeigen();
+                $("#month").text(datum.format("MMMM YYYY"));
+            } else if (req.status === 403) {
+                alert(req.responseText);
+                var result = JSON.parse(req.responseText);
+                if (result['error'] && result['error'] === 'not_logged_in') {
+                    if (result['location']) {
+                        window.location = result['location'];
+                    } else {
+                        alert("error");
+                    }
+                }
             } else if (req.status === 404) {
 
             } else if (req.status === 500) {
@@ -94,10 +127,48 @@ function holeAusgaben(month, year) {
     req.send(params);
 }
 
+function vorherigerMonat() {
+    datum.subtract("month", 1);
+
+    ausgabenEntfernen();
+    holeAusgaben();
+}
+
+function naechsterMonat() {
+    datum.add("month", 1);
+
+    ausgabenEntfernen();
+    holeAusgaben();
+}
+
+function ausgabenEntfernen() {
+
+    $("#ausgabenliste").children().each(function() {
+        //alert("hallo");
+        //alert($(this).html());
+        if (!($(this).hasClass("th") || $(this).attr('id') === "input")) {
+            $(this).remove();
+        }
+    });
+    /*
+     var el = document.getElementById("ausgabenliste");
+     
+     for (var i = 0; i < (el.childNodes.length - 1); i++) {
+     var tempEl = el.childNodes[i];
+     if(!(tempEl.classList.contains("th")||(tempEl.id === "input"))){
+     el.removeChild(tempEL);
+     }
+     }*/
+}
+
 function ausgabenAnzeigen() {
+
+    $("#spendings").text(((json['summeausgaben'].indexOf(".")) ? json['summeausgaben'].replace(".", ",") : json['summeausgaben']) + " €");
+
     var x;
-    for (x in json) {
-        var element = createRow(json[x].idausgabe, dateToLocal(json[x].datum), (json[x].kategorie) ? json[x].kategorie : "", json[x].art, (json[x].preis.indexOf(".")) ? json[x].preis.replace(".", ",") : json[x].preis, (json[x].beschreibung) ? json[x].beschreibung : "");
+    var ausgaben = json['ausgaben'];
+    for (x in ausgaben) {
+        var element = createRow(ausgaben[x].idausgabe, dateToLocal(ausgaben[x].datum), (ausgaben[x].kategorie) ? ausgaben[x].kategorie : "", ausgaben[x].art, (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis, (ausgaben[x].beschreibung) ? ausgaben[x].beschreibung : "");
         document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
     }
 }
@@ -262,7 +333,6 @@ function localToDate(date) {
 
 function createRow(id, datum, kategorie, art, preis, beschreibung) {
     var element = document.createElement("div");
-    element.setAttribute("id", id);
     element.setAttribute("data-id", id);
     element.className = "tr";
     var html = '<div class="td">';

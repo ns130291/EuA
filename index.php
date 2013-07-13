@@ -15,6 +15,9 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
         <title>EuA</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" href="main.css">
+        <script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
+        <script type="text/javascript" src="js/moment.min.js"></script>
+        <script type="text/javascript" src="js/de.js"></script>
         <script type="text/javascript" src="json2.js"></script>
         <script type="text/javascript" src="main.js"></script>
     </head>
@@ -28,6 +31,14 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                     <section id="ausgaben" class="col1">
                         <h2>Ausgaben</h2>
                         <div id="error"></div>
+                        <div id="navbar" class="bar cf">
+                            <div id="previous-month" class="bar-element">&lt;</div>
+                            <div id="month" class="bar-element">Laden...</div>
+                            <div id="next-month" class="bar-element">&gt;</div>
+                            <div class="right">
+                                <div id="spendings" class="bar-element">Laden...</div>
+                            </div>
+                        </div>
                         <div id="ausgabenliste" class="table">
                             <div class="tr th">
                                 <div class="td">
@@ -59,7 +70,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                                     <input placeholder="Edeka, Döner, etc."type="text">
                                 </div>
                                 <div class="td">
-                                    <input size="10" class="preis" placeholder="Preis in &euro;" type="number" min="0.01" step="0.01">
+                                    <input size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
                                     <span>&euro;</span>
                                 </div>
                                 <div class="td">
