@@ -83,6 +83,35 @@ html, body{
     overflow-y: scroll;
     cursor: auto;
     text-align: left;
+    animation: open 1s;
+    -webkit-animation: open 1s;
+}
+
+@-webkit-keyframes open{
+    0% {
+    width: 60px;
+    height: 120px;
+    opacity: 0;
+}
+100% {
+    width:250px;
+    height:500px;
+    opacity: 1;    
+}
+}
+
+@keyframes open{
+    0% {
+    width: 60px;
+    height: 120px;
+    opacity: 0;
+}
+100% {
+    width:250px;
+    height:500px;
+    opacity: 1;    
+}
+
 }
 
 .error{

@@ -179,6 +179,9 @@ function removeEntry(e) {
 
     //alert(el.parentNode.parentNode.getAttribute("data-id"));
 
+    var preis = $(ausgabenElement).children(".preis").html();
+    preis = preis.split(" ")[0];
+    preis = convertPreisToPoint(preis);
 
     var req = initRequest();
     var url = "deleteAusgabe.php";
@@ -197,6 +200,8 @@ function removeEntry(e) {
                 if (json.error === undefined) {
                     if (json.deleted === 'true') {
                         document.getElementById("ausgabenliste").removeChild(ausgabenElement);
+                        
+                        addSpendings(-preis);
                     }
                 } else {
                     alert(json.error);
@@ -301,6 +306,8 @@ function ausgabenSpeichern() {
                     element.className += " new";
                     document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
 
+                    addSpendings(preisDB);
+
                     datumInput.value = "";
                     kategorieInput.value = "";
                     artInput.value = "";
@@ -311,6 +318,13 @@ function ausgabenSpeichern() {
         };
         req.send(params);
     }
+}
+
+/**
+ * @param float preis Preis der hinzugefügt werden soll, negative Werte zum abziehen
+ */
+function addSpendings(preis) {
+    $('#spendings').html(convertPreisToComma(convertPreisToPoint($('#spendings').html().split(' ')[0]) + parseFloat(preis)) + " €");
 }
 
 /**
@@ -409,5 +423,16 @@ function cancelEditEntry(e) {
 
 function updateEntry(e) {
     //TODO abspeichern
+}
+
+function convertPreisToPoint(preis) {
+    preis = preis.replace(",", ".");
+    return parseFloat(preis);
+}
+
+function convertPreisToComma(preis) {
+    preis += "";
+    preis = preis.replace(".", ",");
+    return preis;
 }
 
