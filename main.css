@@ -7,6 +7,15 @@ html, body{
     height: 40%;
 }
 
+input{
+    border-radius: 0;
+}
+
+/* fix for FF Android background for inputs */
+button, input, select {
+  background-image: none;
+}
+
 #logincontainer{
     background-color: #4bb1ff;
     padding-top: 20px;
@@ -15,12 +24,12 @@ html, body{
 
 #login{
     margin: 0 auto;
-    max-width: 300px;
+    max-width: 305px;
     font-family: sans-serif;
 }
 
-#loginbutton{
-    margin-top: 30px;
+#loginformcontainer{
+    margin-left: 5px;
 }
 
 #submit{
@@ -39,14 +48,17 @@ html, body{
 }
 
 .error{
-    background-color: #ff2222;
-    padding: 5px;
-    margin-bottom: 5px;
-    border-radius: 5px;
+  background-color: #ff2222;
+  padding: 5px;
+  margin-bottom: 5px;
 }
 
 .right{
     float: right;
+}
+
+.left{
+    float: left;
 }
 
 .cf:before,
@@ -92,6 +104,9 @@ html, body{
     #error{
         display: none;
         color: red;
+    }
+    .remove{
+        cursor: pointer;
     }
 
     div.table {
