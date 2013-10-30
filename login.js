@@ -15,10 +15,18 @@ function login(e) {
         var error = document.createElement("div");
         error.innerHTML = "Username muss angegeben werden";
         error.className = "error";
-        document.getElementById("login").insertBefore(error, document.getElementById("loginform"));
+        document.getElementById("login").insertBefore(error, document.getElementById("loginformcontainer"));
         e.preventDefault();
     }
+    
     var pw = document.getElementById("pw").value;
+    if (pw == "" || pw == null) {
+        var error = document.createElement("div");
+        error.innerHTML = "Passwort fehlt";
+        error.className = "error";
+        document.getElementById("login").insertBefore(error, document.getElementById("loginformcontainer"));
+        e.preventDefault();
+    }
     //alert(pw);
     document.getElementById("pw").value = "";
     document.getElementById("hidden").value = pw;
