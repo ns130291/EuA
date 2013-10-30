@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div id="logincontainer">
             <div id="login">
                 <div id="loginformcontainer">
-                    <?php/* irgendwas verhindert, dass auf der android tastatur "next" angezeigt wird für die formularfelder */?>
+                    <?php /* irgendwas verhindert, dass auf der android tastatur "next" angezeigt wird für die formularfelder */ ?>
                     <form action="login.php" method="post" id="loginform">
                         <div class="cf">
                             <label for="user">Benutzer</label><input id="user" name="user" class="right" type="text"/>
