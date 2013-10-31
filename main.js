@@ -86,11 +86,6 @@ function initRequest() {
     return xmlhttp;
 }
 
-/**
- * Beide Parameter sind optional
- * @param month Monat, für den die Ausgaben abgerufen werden sollen
- * @param year Jahr, für das die Ausgaben abgerufen werden sollen
- */
 function holeAusgaben() {
     var req = initRequest();
     var url = "getAusgaben.php";
@@ -324,7 +319,7 @@ function ausgabenSpeichern() {
  * @param float preis Preis der hinzugefügt werden soll, negative Werte zum abziehen
  */
 function addSpendings(preis) {
-    $('#spendings').html(convertPreisToComma(convertPreisToPoint($('#spendings').html().split(' ')[0]) + parseFloat(preis)) + " €");
+    $('#spendings').html(convertPreisToComma((convertPreisToPoint($('#spendings').html().split(' ')[0]) + parseFloat(preis)).toFixed(2)) + " €");
 }
 
 /**
