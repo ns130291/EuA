@@ -40,7 +40,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                             </div>
                         </div>
                         <div id="ausgabenliste" class="table">
-                            <div class="tr th">
+                            <div id="ausgabenliste-header" class="tr th">
                                 <div class="td">
                                     Datum
                                 </div>
@@ -61,20 +61,20 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                             </div>
                             <div id="input" class="tr">
                                 <div class="td">
-                                    <input size="10" type="date">
+                                    <input id="input-datum" size="10" type="date">
                                 </div>
                                 <div class="td">
-                                    <input placeholder="Benzin, Essen, etc."type="text" autocomplete="off">
+                                    <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text" autocomplete="off">
                                 </div>
                                 <div class="td">
-                                    <input placeholder="Edeka, Döner, etc."type="text">
+                                    <input id="input-art" placeholder="Edeka, Döner, etc." type="text">
                                 </div>
                                 <div class="td">
-                                    <input size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
+                                    <input id="input-preis" size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
                                     <span>&euro;</span>
                                 </div>
                                 <div class="td">
-                                    <input placeholder="mit Vanessa, etc." type="text">
+                                    <input id="input-beschreibung" placeholder="mit Vanessa, etc." type="text">
                                 </div>
                                 <div class="td">
                                     <div id="plusbutton" onclick="ausgabenSpeichern()">enter</div>

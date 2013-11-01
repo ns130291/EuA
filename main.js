@@ -3,6 +3,7 @@ $(document).ready(function() {
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#spendings").click(uebersichtMonate);
+    holeAusgaben();
 });
 
 function uebersichtMonate() {
@@ -26,23 +27,6 @@ function uebersichtMonate() {
     });
 }
 
-window.onDomReady = function(fn) {
-    //W3C-compliant browser
-    if (document.addEventListener) {
-        document.addEventListener("DOMContentLoaded", fn, false);
-    }
-    //IE
-    else {
-        document.onreadystatechange = function() {
-            // DOM is ready
-            if (document.readyState == "interactive" || document.readyState == "complete") {
-                fn();
-                document.onreadystatechange = function() {
-                };
-            }
-        };
-    }
-};
 
 /**
  * gibt alle childNodes vom Typ Element zurück
@@ -63,14 +47,11 @@ HTMLElement.prototype.getChildElements = function()
     return a;
 };
 
-window.onDomReady(function() {
-    holeAusgaben();
-});
 
-//TODO: Warum ist das global??
 var json = null;
 moment.lang("de");
 var datum = moment();
+var ausgabe = new Object();
 
 /**
  * @return XMLHttpRequest
@@ -86,7 +67,7 @@ function initRequest() {
     return xmlhttp;
 }
 
-function holeAusgaben() {
+function holeAusgaben(callback) {
     var req = initRequest();
     var url = "getAusgaben.php";
     var params = "month=" + (datum.month() + 1) + "&year=" + datum.year();
@@ -101,6 +82,9 @@ function holeAusgaben() {
                 json = JSON.parse(req.responseText);
                 //json=eval(req.responseText);
                 ausgabenAnzeigen();
+                if (callback !== undefined) {
+                    callback();
+                }
                 $("#month").text(datum.format("MMMM YYYY"));
             } else if (req.status === 403) {
                 alert(req.responseText);
@@ -137,7 +121,6 @@ function naechsterMonat() {
 }
 
 function ausgabenEntfernen() {
-
     $("#ausgabenliste").children().each(function() {
         //alert("hallo");
         //alert($(this).html());
@@ -145,15 +128,6 @@ function ausgabenEntfernen() {
             $(this).remove();
         }
     });
-    /*
-     var el = document.getElementById("ausgabenliste");
-     
-     for (var i = 0; i < (el.childNodes.length - 1); i++) {
-     var tempEl = el.childNodes[i];
-     if(!(tempEl.classList.contains("th")||(tempEl.id === "input"))){
-     el.removeChild(tempEL);
-     }
-     }*/
 }
 
 function ausgabenAnzeigen() {
@@ -195,7 +169,7 @@ function removeEntry(e) {
                 if (json.error === undefined) {
                     if (json.deleted === 'true') {
                         document.getElementById("ausgabenliste").removeChild(ausgabenElement);
-                        
+
                         addSpendings(-preis);
                     }
                 } else {
@@ -213,21 +187,23 @@ function removeEntry(e) {
 function ausgabenSpeichern() {
     var parent = document.getElementById("input");
 
-    var id = "";
     var datumInput = parent.getChildElements()[0].getChildElements()[0];
     var kategorieInput = parent.getChildElements()[1].getChildElements()[0];
     var artInput = parent.getChildElements()[2].getChildElements()[0];
     var preisInput = parent.getChildElements()[3].getChildElements()[0];
     var beschreibungInput = parent.getChildElements()[4].getChildElements()[0];
 
-    var datum = datumInput.value;
+    var datumAusgabe = datumInput.value;
     var datumDB = "";
-    if (datum.indexOf(".") > 0) {
-        datumDB = localToDate(datum);
+    if (datumAusgabe.indexOf(".") > 0) {
+        datumDB = localToDate(datumAusgabe);
     } else {
-        datumDB = datum;
-        datum = dateToLocal(datum);
+        datumDB = datumAusgabe;
+        datumAusgabe = dateToLocal(datum);
     }
+
+
+
     var kategorie = kategorieInput.value;
     var art = artInput.value;
     var preis = preisInput.value;
@@ -245,7 +221,7 @@ function ausgabenSpeichern() {
 
     var error = "";
     var showError = false;
-    if (datum === "") {
+    if (datumAusgabe === "") {
         error += "Datum fehlt<br>";
         showError = true;
     }
@@ -265,54 +241,80 @@ function ausgabenSpeichern() {
         //errorElement.style.setAttribute("display", "block");
     } else {
         errorElement.style = "";
-        //Irgendwas geht da schief, aber ich weiß nicht was:-(
-        //document.getElementById("error").style.removeAttribute("display");    
+        ausgabe.datumDB = datumDB;
+        ausgabe.datumAusgabe = datumAusgabe;
+        ausgabe.kategorie = kategorie;
+        ausgabe.art = art;
+        ausgabe.preisDB = preisDB;
+        ausgabe.preis = preis;
+        ausgabe.beschreibung = beschreibung;
 
-        //nur noch abspeichern... ;-) so mittels xmlhttprequest und so zeugs
-        //vllt noch schleife um es 5 mal zu probieren?
-
-        var params = "datum=" + datumDB;
-        if (kategorie) {
-            params += "&kategorie=" + kategorie;
+        //Falls neue Ausgabe nicht im aktuell gewählten Monat ist wird der dazugehörige Monat geladen
+        var datumM = moment(datumDB);
+        if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
+            datum.month(datumM.month());
+            datum.year(datumM.year());
+            console.log("Anderer Monat wird geladen");
+            ausgabenEntfernen();
+            holeAusgaben(ausgabenSpeichernRequest);
+        } else {
+            ausgabenSpeichernRequest();
         }
-        params += "&art=" + encodeURIComponent(art);
-        params += "&preis=" + preisDB;
-        if (beschreibung) {
-            params += "&beschreibung=" + beschreibung;
-        }
-        params = encodeURI(params);
 
-        var req = initRequest();
-        var url = "saveAusgabe.php";
-        req.open("POST", url, true);
-        //Send the proper header information along with the request
-        req.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
-        req.setRequestHeader("Content-length", params.length);
-        req.setRequestHeader("Connection", "close");
 
-        req.onreadystatechange = function() {//Call a function when the state changes.
-            if (req.readyState === 4) {
-                if (req.status === 200) {
-                    //alert(req.responseText);
-                    id = req.responseText;
-
-                    //id aus antwort des queries
-                    var element = createRow(id, datum, kategorie, art, preis, beschreibung);
-                    element.className += " new";
-                    document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
-
-                    addSpendings(preisDB);
-
-                    datumInput.value = "";
-                    kategorieInput.value = "";
-                    artInput.value = "";
-                    preisInput.value = "";
-                    beschreibungInput.value = "";
-                }
-            }
-        };
-        req.send(params);
     }
+}
+
+function ausgabenSpeichernRequest() {
+    //Irgendwas geht da schief, aber ich weiß nicht was:-(
+    //document.getElementById("error").style.removeAttribute("display");    
+
+    //nur noch abspeichern... ;-) so mittels xmlhttprequest und so zeugs
+    //vllt noch schleife um es 5 mal zu probieren?
+
+    var params = "datum=" + ausgabe.datumDB;
+    if (ausgabe.kategorie) {
+        params += "&kategorie=" + ausgabe.kategorie;
+    }
+    params += "&art=" + encodeURIComponent(ausgabe.art);
+    params += "&preis=" + ausgabe.preisDB;
+    if (ausgabe.beschreibung) {
+        params += "&beschreibung=" + ausgabe.beschreibung;
+    }
+    params = encodeURI(params);
+
+    var req = initRequest();
+    var url = "saveAusgabe.php";
+    req.open("POST", url, true);
+    //Send the proper header information along with the request
+    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+    req.setRequestHeader("Content-length", params.length);
+    req.setRequestHeader("Connection", "close");
+
+    req.onreadystatechange = function() {//Call a function when the state changes.
+        if (req.readyState === 4) {
+            if (req.status === 200) {
+                //alert(req.responseText);
+                var id = req.responseText;
+
+                //id aus antwort des queries
+                var element = createRow(id, ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
+                element.className += " new";
+                document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
+
+                addSpendings(ausgabe.preisDB);
+
+                clearInput();
+
+                ausgabe = new Object();
+            }
+        }
+    };
+    req.send(params);
+}
+
+function clearInput(){
+    $('#input-datum, #input-kategorie, #input-art, #input-preis, #input-beschreibung').val("");
 }
 
 /**
