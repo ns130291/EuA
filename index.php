@@ -30,7 +30,6 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                 <div id="leftwrapper" class="colleft">
                     <section id="ausgaben" class="col1">
                         <h2>Ausgaben</h2>
-                        <div id="error"></div>
                         <div id="navbar" class="bar cf">
                             <div id="previous-month" class="bar-element">&lt;</div>
                             <div id="month" class="bar-element">Laden...</div>
@@ -80,14 +79,15 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                                     <div id="plusbutton" onclick="ausgabenSpeichern()">enter</div>
                                 </div>
                             </div>
+                            <div id="error"></div>
                         </div>
                     </section>
-                    <section id="einnahmen" class="col2">
+                    <!--<section id="einnahmen" class="col2">
                         <h2>Einnahmen</h2>
                         <div>
 
                         </div>
-                    </section>
+                    </section>-->
                 </div>
             </section>
         </div>

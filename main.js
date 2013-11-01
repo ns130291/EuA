@@ -121,13 +121,7 @@ function naechsterMonat() {
 }
 
 function ausgabenEntfernen() {
-    $("#ausgabenliste").children().each(function() {
-        //alert("hallo");
-        //alert($(this).html());
-        if (!($(this).hasClass("th") || $(this).attr('id') === "input")) {
-            $(this).remove();
-        }
-    });
+    $(".ausgabe").remove();
 }
 
 function ausgabenAnzeigen() {
@@ -138,7 +132,7 @@ function ausgabenAnzeigen() {
     var ausgaben = json['ausgaben'];
     for (x in ausgaben) {
         var element = createRow(ausgaben[x].idausgabe, dateToLocal(ausgaben[x].datum), (ausgaben[x].kategorie) ? ausgaben[x].kategorie : "", ausgaben[x].art, (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis, (ausgaben[x].beschreibung) ? ausgaben[x].beschreibung : "");
-        document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
+        document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("input"));
     }
 }
 
@@ -185,54 +179,51 @@ function removeEntry(e) {
  * 
  */
 function ausgabenSpeichern() {
-    var parent = document.getElementById("input");
-
-    var datumInput = parent.getChildElements()[0].getChildElements()[0];
-    var kategorieInput = parent.getChildElements()[1].getChildElements()[0];
-    var artInput = parent.getChildElements()[2].getChildElements()[0];
-    var preisInput = parent.getChildElements()[3].getChildElements()[0];
-    var beschreibungInput = parent.getChildElements()[4].getChildElements()[0];
-
-    var datumAusgabe = datumInput.value;
-    var datumDB = "";
-    if (datumAusgabe.indexOf(".") > 0) {
-        datumDB = localToDate(datumAusgabe);
-    } else {
-        datumDB = datumAusgabe;
-        datumAusgabe = dateToLocal(datum);
-    }
-
-
-
-    var kategorie = kategorieInput.value;
-    var art = artInput.value;
-    var preis = preisInput.value;
-    var preisDB = 0;
-    if (preis.indexOf(",") > 0) {
-        preisDB = preis.replace(",", ".");
-    } else {
-        preisDB = preis;
-        if (preis.indexOf(".") > 0) {
-            preisDB = preis;
-            preis = preis.replace(".", ",");
-        }
-    }
-    var beschreibung = beschreibungInput.value;
-
     var error = "";
     var showError = false;
-    if (datumAusgabe === "") {
+
+    var datumAusgabe = $('#input-datum').val();
+    if (datumAusgabe === undefined || datumAusgabe === "") {
         error += "Datum fehlt<br>";
         showError = true;
+    } else {
+        var datumDB = "";
+        if (datumAusgabe.indexOf(".") > 0) {
+            datumDB = localToDate(datumAusgabe);
+        } else {
+            datumDB = datumAusgabe;
+            datumAusgabe = dateToLocal(datumAusgabe);
+        }
     }
-    if (art === "") {
+
+    var kategorie = $('#input-kategorie').val();
+
+    var art = $('#input-art').val();
+    if (art === undefined || art === "") {
         error += "Art der Ausgabe fehlt<br>";
         showError = true;
     }
-    if (preis === "") {
+
+    var preis = $('#input-preis').val();
+    if (preis === undefined || preis === "") {
         error += "Preis fehlt<br>";
         showError = true;
+    } else {
+        var preisDB = 0;
+        if (preis.indexOf(",") > 0) {
+            preisDB = preis.replace(",", ".");
+        } else {
+            preisDB = preis;
+            if (preis.indexOf(".") > 0) {
+                preisDB = preis;
+                preis = preis.replace(".", ",");
+            } else {
+                preis += ",00";
+            }
+        }
     }
+
+    var beschreibung = $('#input-beschreibung').val();
 
     var errorElement = document.getElementById("error");
     if (showError) {
@@ -266,54 +257,36 @@ function ausgabenSpeichern() {
 }
 
 function ausgabenSpeichernRequest() {
-    //Irgendwas geht da schief, aber ich weiß nicht was:-(
-    //document.getElementById("error").style.removeAttribute("display");    
-
-    //nur noch abspeichern... ;-) so mittels xmlhttprequest und so zeugs
-    //vllt noch schleife um es 5 mal zu probieren?
-
-    var params = "datum=" + ausgabe.datumDB;
+    var params = new Object();
+    params.datum = ausgabe.datumDB;
     if (ausgabe.kategorie) {
-        params += "&kategorie=" + ausgabe.kategorie;
+        params.kategorie = ausgabe.kategorie;
     }
-    params += "&art=" + encodeURIComponent(ausgabe.art);
-    params += "&preis=" + ausgabe.preisDB;
+    params.art = encodeURIComponent(ausgabe.art);
+    params.preis = ausgabe.preisDB;
     if (ausgabe.beschreibung) {
-        params += "&beschreibung=" + ausgabe.beschreibung;
+        params.beschreibung = ausgabe.beschreibung;
     }
-    params = encodeURI(params);
 
-    var req = initRequest();
-    var url = "saveAusgabe.php";
-    req.open("POST", url, true);
-    //Send the proper header information along with the request
-    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
-    req.setRequestHeader("Content-length", params.length);
-    req.setRequestHeader("Connection", "close");
+    $.ajax("saveAusgabe.php", {
+        type: 'POST',
+        data: params
+    }).done(function(id) {
+        var element = createRow(id, ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
+        element.className += " new";
+        document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("input"));
 
-    req.onreadystatechange = function() {//Call a function when the state changes.
-        if (req.readyState === 4) {
-            if (req.status === 200) {
-                //alert(req.responseText);
-                var id = req.responseText;
+        addSpendings(ausgabe.preisDB);
 
-                //id aus antwort des queries
-                var element = createRow(id, ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
-                element.className += " new";
-                document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
+        clearInput();
 
-                addSpendings(ausgabe.preisDB);
-
-                clearInput();
-
-                ausgabe = new Object();
-            }
-        }
-    };
-    req.send(params);
+        ausgabe = new Object();
+    }).fail(function(msg) {
+        alert("Speichern der Ausgabe fehlgeschlagen: " + msg);
+    });
 }
 
-function clearInput(){
+function clearInput() {
     $('#input-datum, #input-kategorie, #input-art, #input-preis, #input-beschreibung').val("");
 }
 
@@ -345,7 +318,7 @@ function localToDate(date) {
 function createRow(id, datum, kategorie, art, preis, beschreibung) {
     var element = document.createElement("div");
     element.setAttribute("data-id", id);
-    element.className = "tr";
+    element.className = "tr ausgabe";
     var html = '<div class="td">';
     html += datum;
     html += '</div>';
