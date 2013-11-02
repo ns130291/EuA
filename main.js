@@ -3,19 +3,23 @@ $(document).ready(function() {
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#spendings").click(uebersichtMonate);
+    $(window).resize(function() {
+        $('#ausgaben').height($(window).height() - $('header').height());
+    });
+    $('#ausgaben').height($(window).height() - $('header').height());
     holeAusgaben();
 });
 
 function uebersichtMonate() {
     $.post('getAusgabenUebersicht.php', function(data) {
-        var result = JSON.parse(data);
-        if (!result.error) {
-            if (result.ausgaben) {
+        var json = JSON.parse(data);
+        if (json['error'] === undefined) {
+            if (json.ausgaben) {
                 var el = $("<div>").attr("id", "month-overview").click(function() {
                     $(this).remove();
                     return false;
                 });
-                var ausgaben = result.ausgaben;
+                var ausgaben = json.ausgaben;
                 for (var x in ausgaben) {
                     var tempDate = moment([ausgaben[x].jahr, ausgaben[x].monat - 1]);
                     var preis = (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis;
@@ -23,30 +27,19 @@ function uebersichtMonate() {
                 }
                 $("#spendings").append(el);
             }
+        } else {
+            if (json['error'] === 'not_logged_in') {
+                if (json['location']) {
+                    window.location = json['location'];
+                } else {
+                    alert("Sie sind nicht eingeloggt");
+                }
+            } else {
+                alert("Unbekannter Fehler");
+            }
         }
     });
 }
-
-
-/**
- * gibt alle childNodes vom Typ Element zurück
- * @return array mit Child-Elements
- */
-HTMLElement.prototype.getChildElements = function()
-{
-    var a = [];
-    var tags = this.childNodes;
-
-    for (var i = 0; i < tags.length; i++)
-    {
-        if (tags[i].nodeType === 1)
-        {
-            a.push(tags[i]);
-        }
-    }
-    return a;
-};
-
 
 var json = null;
 moment.lang("de");
@@ -78,28 +71,24 @@ function holeAusgaben(callback) {
     req.onreadystatechange = function() {//Call a function when the state changes.
         if (req.readyState === 4) {
             if (req.status === 200) {
-                //alert(req.responseText);
                 json = JSON.parse(req.responseText);
-                //json=eval(req.responseText);
-                ausgabenAnzeigen();
-                if (callback !== undefined) {
-                    callback();
-                }
-                $("#month").text(datum.format("MMMM YYYY"));
-            } else if (req.status === 403) {
-                alert(req.responseText);
-                var result = JSON.parse(req.responseText);
-                if (result['error'] && result['error'] === 'not_logged_in') {
-                    if (result['location']) {
-                        window.location = result['location'];
+                if (json['error'] === undefined) {
+                    ausgabenAnzeigen();
+                    if (callback !== undefined) {
+                        callback();
+                    }
+                    $("#month").text(datum.format("MMMM YYYY"));
+                } else {
+                    if (json['error'] === 'not_logged_in') {
+                        if (json['location']) {
+                            window.location = json['location'];
+                        } else {
+                            alert("Sie sind nicht eingeloggt");
+                        }
                     } else {
-                        alert("error");
+                        alert("Unbekannter Fehler");
                     }
                 }
-            } else if (req.status === 404) {
-
-            } else if (req.status === 500) {
-
             }
         }
     };
@@ -160,14 +149,22 @@ function removeEntry(e) {
             if (req.status === 200) {
                 //alert(req.responseText);
                 var json = JSON.parse(req.responseText);
-                if (json.error === undefined) {
+                if (json['error'] === undefined) {
                     if (json.deleted === 'true') {
                         document.getElementById("ausgabenliste").removeChild(ausgabenElement);
 
                         addSpendings(-preis);
                     }
                 } else {
-                    alert(json.error);
+                    if (json['error'] === 'not_logged_in') {
+                        if (json['location']) {
+                            window.location = json['location'];
+                        } else {
+                            alert("Sie sind nicht eingeloggt");
+                        }
+                    } else {
+                        alert("Unbekannter Fehler");
+                    }
                 }
             }
         }
@@ -241,7 +238,7 @@ function ausgabenSpeichern() {
         ausgabe.beschreibung = beschreibung;
 
         //Falls neue Ausgabe nicht im aktuell gewählten Monat ist wird der dazugehörige Monat geladen
-        var datumM = moment(datumDB);
+        var datumM = moment(datumDB, "YYYY-M-D");
         if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
             datum.month(datumM.month());
             datum.year(datumM.year());
@@ -271,16 +268,29 @@ function ausgabenSpeichernRequest() {
     $.ajax("saveAusgabe.php", {
         type: 'POST',
         data: params
-    }).done(function(id) {
-        var element = createRow(id, ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
-        element.className += " new";
-        document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("input"));
+    }).done(function(result) {
+        var json = JSON.parse(result);
+        if (json['error'] === undefined) {
+            var element = createRow(json['id'], ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
+            element.className += " new";
+            document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("input"));
 
-        addSpendings(ausgabe.preisDB);
+            addSpendings(ausgabe.preisDB);
 
-        clearInput();
+            clearInput();
 
-        ausgabe = new Object();
+            ausgabe = new Object();
+        } else {
+            if (json['error'] === 'not_logged_in') {
+                if (json['location']) {
+                    window.location = json['location'];
+                } else {
+                    alert("Sie sind nicht eingeloggt");
+                }
+            } else {
+                alert("Unbekannter Fehler");
+            }
+        }
     }).fail(function(msg) {
         alert("Speichern der Ausgabe fehlgeschlagen: " + msg);
     });
@@ -335,7 +345,7 @@ function createRow(id, datum, kategorie, art, preis, beschreibung) {
     html += beschreibung;
     html += '</div>';
     html += '<div class="td">';
-    html += '<div class="remove">&times;</div>';
+    html += '<div class="remove icon-trash icon-hover"></div>';
     html += '<div class="edit">edit</div>';
     html += '</div>';
     element.innerHTML = html;

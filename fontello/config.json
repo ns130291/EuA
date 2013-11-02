@@ -1,0 +1,16 @@
+{
+  "name": "nsvb-symbol",
+  "css_prefix_text": "icon-",
+  "css_use_suffix": false,
+  "hinting": true,
+  "units_per_em": 1000,
+  "ascent": 850,
+  "glyphs": [
+    {
+      "uid": "3ab2abf6f936d3e53ee8c184cedaed82",
+      "css": "trash",
+      "code": 59392,
+      "src": "elusive"
+    }
+  ]
+}

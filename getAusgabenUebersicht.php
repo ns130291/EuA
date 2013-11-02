@@ -3,7 +3,7 @@ session_start();
 if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
     $hostname = $_SERVER['HTTP_HOST'];
     $path = dirname($_SERVER['PHP_SELF']);
-    die('{"error":"not_logged_in","location"."' . 'Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/login.php' . '"}');
+    die('{"error":"not_logged_in","location":"https://' . $hostname . ($path == '/' ? '' : $path) . '/login.php"}');
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {

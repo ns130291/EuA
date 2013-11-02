@@ -1,0 +1,12 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>Copyright (C) 2013 by original authors @ fontello.com</metadata>
+<defs>
+<font id="nsvb-symbol" horiz-adv-x="1000" >
+<font-face font-family="nsvb-symbol" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
+<missing-glyph horiz-adv-x="1000" />
+<glyph glyph-name="trash" unicode="&#xe800;" d="m0 633l0 141l289 0l0 76l246 0l0-76l289 0l0-141l-824 0z m43-783l0 676l738 0l0-676l-738 0z" horiz-adv-x="824" />
+</font>
+</defs>
+</svg>

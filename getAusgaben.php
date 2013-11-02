@@ -14,11 +14,9 @@ function lastday($month = '', $year = '') {
 
 session_start();
 if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
-    //header 403
     $hostname = $_SERVER['HTTP_HOST'];
     $path = dirname($_SERVER['PHP_SELF']);
-    header("HTTP/1.1 403 Forbidden");
-    die('{"error":"not_logged_in","location"."' . 'Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/login.php' . '"}');
+    die('{"error":"not_logged_in","location":"https://' . $hostname . ($path == '/' ? '' : $path) . '/login.php"}');
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -65,7 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             die('Keine Ausgaben in diesem Monat: Summe fehlt ' . mysql_error());
         } else {
             $row = mysql_fetch_row($result);
-
+            if($row[0]==""){
+                $row[0] = "0.00";
+            }
             $json = '{"summeausgaben":"' . $row[0] . '","ausgaben":' . $ausgaben . '}';
             echo $json;
         }

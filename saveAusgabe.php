@@ -1,4 +1,10 @@
 <?php
+session_start();
+if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
+    $hostname = $_SERVER['HTTP_HOST'];
+    $path = dirname($_SERVER['PHP_SELF']);
+    die('{"error":"not_logged_in","location":"https://' . $hostname . ($path == '/' ? '' : $path) . '/login.php"}');
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     //$link = mysql_connect('localhost:3306', 'root');
@@ -33,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $result = mysql_query('SELECT LAST_INSERT_ID()');
     if($result){
 	$array = mysql_fetch_row($result);
-	echo $array[0]; 
+	echo '{"id":"' . $array[0] . '"}'; 
     }
     //echo mysql_error();
     mysql_close($link);
