@@ -238,7 +238,14 @@ function ausgabenSpeichern() {
         ausgabe.beschreibung = beschreibung;
 
         //Falls neue Ausgabe nicht im aktuell gewählten Monat ist wird der dazugehörige Monat geladen
-        var datumM = moment(datumDB, "YYYY-M-D");
+        var datumM;
+        if (datumDB.split("-")[0].length < 4) {
+            datumM = moment(datumDB, "YY-M-D");
+        }
+        else{
+            datumM = moment(datumDB, "YYYY-M-D");
+        }
+        
         if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
             datum.month(datumM.month());
             datum.year(datumM.year());
