@@ -16,6 +16,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" href="main.css">
         <link rel="stylesheet" href="fontello/css/nsvb-symbol.css">
+        <link rel="stylesheet" href="fontello/css/animation.css">
         <script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
         <script type="text/javascript" src="js/moment.min.js"></script>
         <script type="text/javascript" src="js/de.js"></script>
@@ -25,60 +26,65 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
     <body>
         <div id="content">
             <header>
-                <h1>Einnahmen und Ausgaben</h1>
                 <div id="navbar" class="bar cf">
-                    <div id="previous-month" class="bar-element">&lt;</div>
+                    <div id="previous-month" class="bar-element">&#8592;</div>
                     <div id="month" class="bar-element">Laden...</div>
-                    <div id="next-month" class="bar-element">&gt;</div>
+                    <div id="next-month" class="bar-element">&#8594;</div>
                     <div class="right">
                         <div id="spendings" class="bar-element">Laden...</div>
                     </div>
                 </div>
             </header>
-            <section id="ausgaben">
-                <div id="ausgabenliste" class="table">
+            <section>
+                <section id="table-header" class="table">
                     <div id="ausgabenliste-header" class="tr th">
-                        <div class="td">
+                        <div class="td td-datum">
                             Datum
                         </div>
-                        <div class="td">
+                        <div class="td td-kategorie">
                             Kategorie
                         </div>
-                        <div class="td">
+                        <div class="td td-art">
                             Art
                         </div>
-                        <div class="td">
+                        <div class="td td-preis">
                             Preis
                         </div>
-                        <div class="td">
+                        <div class="td td-beschreibung">
                             Beschreibung
                         </div>
-                        <div class="td">
+                        <div class="td td-optionen">
                         </div>
                     </div>
+                </section>
+                <section id="ausgaben">
+                    <div id="ausgabenliste" class="table">
+                        <div id="error"></div>                    
+                    </div>
+                </section>
+                <footer class="table" style="width: 100%;">
                     <div id="input" class="tr">
-                        <div class="td">
+                        <div class="td td-datum">
                             <input id="input-datum" size="10" type="date">
                         </div>
-                        <div class="td">
+                        <div class="td td-kategorie">
                             <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text" autocomplete="off">
                         </div>
-                        <div class="td">
+                        <div class="td td-art">
                             <input id="input-art" placeholder="Edeka, Döner, etc." type="text">
                         </div>
-                        <div class="td">
+                        <div class="td td-preis">
                             <input id="input-preis" size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
                             <span>&euro;</span>
                         </div>
-                        <div class="td">
+                        <div class="td td-beschreibung">
                             <input id="input-beschreibung" placeholder="mit Vanessa, etc." type="text">
                         </div>
-                        <div class="td">
-                            <div id="plusbutton" onclick="ausgabenSpeichern()">enter</div>
+                        <div class="td td-optionen">
+                            <div id="plusbutton" class="plus icon-plus"></div>
                         </div>
                     </div>
-                    <div id="error"></div>                    
-                </div>
+                </footer>
             </section>
         </div>
     </body>

@@ -7,6 +7,18 @@
   "ascent": 850,
   "glyphs": [
     {
+      "uid": "2a6740fc2f9d0edea54205963f662594",
+      "css": "spin3",
+      "code": 59394,
+      "src": "fontelico"
+    },
+    {
+      "uid": "55e2ff85b1c459c383f46da6e96014b0",
+      "css": "plus",
+      "code": 59393,
+      "src": "elusive"
+    },
+    {
       "uid": "3ab2abf6f936d3e53ee8c184cedaed82",
       "css": "trash",
       "code": 59392,

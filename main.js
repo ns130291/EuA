@@ -3,10 +3,13 @@ $(document).ready(function() {
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#spendings").click(uebersichtMonate);
+    $("#plusbutton").click(ausgabenSpeichern);
     $(window).resize(function() {
-        $('#ausgaben').height($(window).height() - $('header').height());
+        $('#ausgaben').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height());
+        $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
     });
-    $('#ausgaben').height($(window).height() - $('header').height());
+    $('#ausgaben').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height());
+    $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
     holeAusgaben();
 });
 
@@ -78,6 +81,7 @@ function holeAusgaben(callback) {
                         callback();
                     }
                     $("#month").text(datum.format("MMMM YYYY"));
+                    $('#loading-screen').remove();
                 } else {
                     if (json['error'] === 'not_logged_in') {
                         if (json['location']) {
@@ -99,6 +103,7 @@ function vorherigerMonat() {
     datum.subtract("month", 1);
 
     ausgabenEntfernen();
+    window.history.pushState({}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
     holeAusgaben();
 }
 
@@ -106,11 +111,17 @@ function naechsterMonat() {
     datum.add("month", 1);
 
     ausgabenEntfernen();
+    window.history.pushState({}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
     holeAusgaben();
 }
 
 function ausgabenEntfernen() {
+    $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'";>\uE802</span> ' + datum.format("MMMM YYYY"));
     $(".ausgabe").remove();
+    if (!document.getElementById('loading-screen')) {
+        $('#ausgaben').append($('<div>').css({"background-color": "#ccc"}).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({"font-family": "nsvb-symbol", "font-size": "200%"}).addClass('loading').append($('<span>').addClass('animate-spin').text('\uE802')))))
+        $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
+    }    
 }
 
 function ausgabenAnzeigen() {
@@ -121,7 +132,7 @@ function ausgabenAnzeigen() {
     var ausgaben = json['ausgaben'];
     for (x in ausgaben) {
         var element = createRow(ausgaben[x].idausgabe, dateToLocal(ausgaben[x].datum), (ausgaben[x].kategorie) ? ausgaben[x].kategorie : "", ausgaben[x].art, (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis, (ausgaben[x].beschreibung) ? ausgaben[x].beschreibung : "");
-        document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("input"));
+        $("#ausgabenliste").append(element);
     }
 }
 
@@ -242,10 +253,10 @@ function ausgabenSpeichern() {
         if (datumDB.split("-")[0].length < 4) {
             datumM = moment(datumDB, "YY-M-D");
         }
-        else{
+        else {
             datumM = moment(datumDB, "YYYY-M-D");
         }
-        
+
         if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
             datum.month(datumM.month());
             datum.year(datumM.year());
@@ -336,23 +347,23 @@ function createRow(id, datum, kategorie, art, preis, beschreibung) {
     var element = document.createElement("div");
     element.setAttribute("data-id", id);
     element.className = "tr ausgabe";
-    var html = '<div class="td">';
+    var html = '<div class="td td-datum">';
     html += datum;
     html += '</div>';
-    html += '<div class="td">';
+    html += '<div class="td td-kategorie">';
     html += kategorie;
     html += '</div>';
-    html += '<div class="td">';
+    html += '<div class="td td-art">';
     html += art;
     html += '</div>';
-    html += '<div class="preis td">';
+    html += '<div class="preis td td-preis">';
     html += preis + ' &euro;';
     html += '</div>';
-    html += '<div class="td">';
+    html += '<div class="td td-beschreibung">';
     html += beschreibung;
     html += '</div>';
-    html += '<div class="td">';
-    html += '<div class="remove icon-trash icon-hover"></div>';
+    html += '<div class="td td-optionen">';
+    html += '<div class="remove icon-trash"></div>';
     html += '<div class="edit">edit</div>';
     html += '</div>';
     element.innerHTML = html;

@@ -3,6 +3,10 @@ html, body{
     margin: 0;
 }
 
+body{
+    min-width: 600px;
+}
+
 #spacertop{
     height: 40%;
 }
@@ -15,7 +19,7 @@ header{
     overflow: auto;
 }
 
-.icon-hover:hover{
+.remove:hover{
     color: #D40000;
 }
 
@@ -188,7 +192,7 @@ content{
     overflow-y: auto;
 }
 #ausgabenliste{
-    
+
 }
 #einnahmen{
 
@@ -204,19 +208,24 @@ content{
     cursor: pointer;
 }
 
-div.table {
+.table {
     display:table;
+    width: 100%;
+    table-layout: fixed;
 }
-div.tr {
+.tr {
     display:table-row;
 }
-div.td {
+.td {
     display:table-cell;
     vertical-align: top;
     border-top: 1px solid darkgray;
     padding-top: 5px;
     padding-bottom: 5px;
     padding-left: 5px;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 .td textarea{
     height: 1.2em;
@@ -231,9 +240,6 @@ div.td {
 .td input.preis{
     width: 80%;
 }
-.td textarea:focus, .td input:focus{
-    border: 1px solid orange;
-}
 .th{
     font-weight: bold;
 }
@@ -246,11 +252,46 @@ div.td {
 .preis{
     text-align: right;
 }
-#plusbutton{
+.plus{
     cursor: pointer;
-    border: 1px solid black;
-    margin: 10px;
-    border-radius: 3px;
-    background-color: lightgrey;
-    padding: 3px;
 }
+
+.plus:hover{
+    color: #4bb1ff;
+}
+
+.td-datum{
+    width: 10ch;
+}
+
+.td-kategorie{
+    width: 15ch;
+}
+
+.td-preis{
+    width: 10ch;
+}
+
+.td-beschreibung{
+    width: 150px;
+}
+
+.td-optionen{
+    width: 70px;
+}
+
+.loading{
+    vertical-align: middle;
+    text-align: center;
+}
+
+#previous-month, #next-month{
+    -webkit-user-select: none; /* Chrome/Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+
+    /* Rules below not implemented in browsers yet */
+    -o-user-select: none;
+    user-select: none;
+}
+
