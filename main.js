@@ -4,14 +4,15 @@ $(document).ready(function() {
     $("#previous-month").click(vorherigerMonat);
     $("#spendings").click(uebersichtMonate);
     $("#plusbutton").click(ausgabenSpeichern);
-    $(window).resize(function() {
-        $('#ausgaben').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height());
-        $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
-    });
-    $('#ausgaben').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height());
-    $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
+    $(window).resize(resize);
+    resize();
     holeAusgaben();
 });
+
+function resize() {
+    $('#ausgaben').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height());
+    $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
+}
 
 function uebersichtMonate() {
     $.post('getAusgabenUebersicht.php', function(data) {
@@ -31,17 +32,21 @@ function uebersichtMonate() {
                 $("#spendings").append(el);
             }
         } else {
-            if (json['error'] === 'not_logged_in') {
-                if (json['location']) {
-                    window.location = json['location'];
-                } else {
-                    alert("Sie sind nicht eingeloggt");
-                }
-            } else {
-                alert("Unbekannter Fehler");
-            }
+            errorHandling(json);
         }
     });
+}
+
+function errorHandling(json) {
+    if (json['error'] === 'not_logged_in') {
+        if (json['location']) {
+            window.location = json['location'];
+        } else {
+            alert("Sie sind nicht eingeloggt");
+        }
+    } else {
+        alert("Unbekannter Fehler");
+    }
 }
 
 var json = null;
@@ -83,15 +88,7 @@ function holeAusgaben(callback) {
                     $("#month").text(datum.format("MMMM YYYY"));
                     $('#loading-screen').remove();
                 } else {
-                    if (json['error'] === 'not_logged_in') {
-                        if (json['location']) {
-                            window.location = json['location'];
-                        } else {
-                            alert("Sie sind nicht eingeloggt");
-                        }
-                    } else {
-                        alert("Unbekannter Fehler");
-                    }
+                    errorHandling(json);
                 }
             }
         }
@@ -101,36 +98,30 @@ function holeAusgaben(callback) {
 
 function vorherigerMonat() {
     datum.subtract("month", 1);
-
-    ausgabenEntfernen();
-    window.history.pushState({}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
-    holeAusgaben();
+    andererMonat();
 }
 
 function naechsterMonat() {
     datum.add("month", 1);
-
-    ausgabenEntfernen();
-    window.history.pushState({}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
-    holeAusgaben();
+    andererMonat();
 }
 
-function ausgabenEntfernen() {
+function andererMonat() {
     $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'";>\uE802</span> ' + datum.format("MMMM YYYY"));
     $(".ausgabe").remove();
     if (!document.getElementById('loading-screen')) {
         $('#ausgaben').append($('<div>').css({"background-color": "#ccc"}).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({"font-family": "nsvb-symbol", "font-size": "200%"}).addClass('loading').append($('<span>').addClass('animate-spin').text('\uE802')))))
         $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
-    }    
+    }
+    window.history.pushState({}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
+    holeAusgaben();
 }
 
 function ausgabenAnzeigen() {
-
     $("#spendings").text(((json['summeausgaben'].indexOf(".")) ? json['summeausgaben'].replace(".", ",") : json['summeausgaben']) + " €");
 
-    var x;
     var ausgaben = json['ausgaben'];
-    for (x in ausgaben) {
+    for (var x in ausgaben) {
         var element = createRow(ausgaben[x].idausgabe, dateToLocal(ausgaben[x].datum), (ausgaben[x].kategorie) ? ausgaben[x].kategorie : "", ausgaben[x].art, (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis, (ausgaben[x].beschreibung) ? ausgaben[x].beschreibung : "");
         $("#ausgabenliste").append(element);
     }
@@ -158,7 +149,6 @@ function removeEntry(e) {
     req.onreadystatechange = function() {//Call a function when the state changes.
         if (req.readyState === 4) {
             if (req.status === 200) {
-                //alert(req.responseText);
                 var json = JSON.parse(req.responseText);
                 if (json['error'] === undefined) {
                     if (json.deleted === 'true') {
@@ -167,15 +157,7 @@ function removeEntry(e) {
                         addSpendings(-preis);
                     }
                 } else {
-                    if (json['error'] === 'not_logged_in') {
-                        if (json['location']) {
-                            window.location = json['location'];
-                        } else {
-                            alert("Sie sind nicht eingeloggt");
-                        }
-                    } else {
-                        alert("Unbekannter Fehler");
-                    }
+                    errorHandling(json);
                 }
             }
         }
@@ -183,16 +165,31 @@ function removeEntry(e) {
     req.send(params);
 }
 
-/**
- * 
- */
+function fehlerAnzeigen(error) {
+    if (error['datum'] !== undefined) {
+        $('#input .td-datum').append($('<div>').addClass('error').text(error['datum'])/*.append($('<div>').addClass('error-diamond'))*/);
+    }
+    if (error['art'] !== undefined) {
+        $('#input .td-art').append($('<div>').addClass('error').text(error['art']));
+    }
+    if (error['preis'] !== undefined) {
+        $('#input .td-preis').append($('<div>').addClass('error').text(error['preis']));
+    }
+}
+
+function fehlerLöschen(){
+    $('#input .error').remove();
+}
+
 function ausgabenSpeichern() {
-    var error = "";
+    var error = new Object();
     var showError = false;
+    
+    fehlerLöschen();
 
     var datumAusgabe = $('#input-datum').val();
     if (datumAusgabe === undefined || datumAusgabe === "") {
-        error += "Datum fehlt<br>";
+        error['datum'] = "Datum fehlt";
         showError = true;
     } else {
         var datumDB = "";
@@ -208,13 +205,13 @@ function ausgabenSpeichern() {
 
     var art = $('#input-art').val();
     if (art === undefined || art === "") {
-        error += "Art der Ausgabe fehlt<br>";
+        error['art'] = "Art der Ausgabe fehlt";
         showError = true;
     }
 
     var preis = $('#input-preis').val();
     if (preis === undefined || preis === "") {
-        error += "Preis fehlt<br>";
+        error['preis'] = "Preis fehlt";
         showError = true;
     } else {
         var preisDB = 0;
@@ -232,14 +229,10 @@ function ausgabenSpeichern() {
     }
 
     var beschreibung = $('#input-beschreibung').val();
-
-    var errorElement = document.getElementById("error");
-    if (showError) {
-        errorElement.innerHTML = error;
-        errorElement.style.display = "block";
-        //errorElement.style.setAttribute("display", "block");
+    
+    if (showError) {        
+        fehlerAnzeigen(error);
     } else {
-        errorElement.style = "";
         ausgabe.datumDB = datumDB;
         ausgabe.datumAusgabe = datumAusgabe;
         ausgabe.kategorie = kategorie;
@@ -261,7 +254,7 @@ function ausgabenSpeichern() {
             datum.month(datumM.month());
             datum.year(datumM.year());
             console.log("Anderer Monat wird geladen");
-            ausgabenEntfernen();
+            andererMonat();
             holeAusgaben(ausgabenSpeichernRequest);
         } else {
             ausgabenSpeichernRequest();
@@ -291,7 +284,8 @@ function ausgabenSpeichernRequest() {
         if (json['error'] === undefined) {
             var element = createRow(json['id'], ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
             element.className += " new";
-            document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("input"));
+            //document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("input"));
+            document.getElementById("ausgabenliste").appendChild(element);
 
             addSpendings(ausgabe.preisDB);
 
@@ -299,15 +293,7 @@ function ausgabenSpeichernRequest() {
 
             ausgabe = new Object();
         } else {
-            if (json['error'] === 'not_logged_in') {
-                if (json['location']) {
-                    window.location = json['location'];
-                } else {
-                    alert("Sie sind nicht eingeloggt");
-                }
-            } else {
-                alert("Unbekannter Fehler");
-            }
+            errorHandling(json);
         }
     }).fail(function(msg) {
         alert("Speichern der Ausgabe fehlgeschlagen: " + msg);

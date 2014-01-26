@@ -58,14 +58,12 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                     </div>
                 </section>
                 <section id="ausgaben">
-                    <div id="ausgabenliste" class="table">
-                        <div id="error"></div>                    
-                    </div>
+                    <div id="ausgabenliste" class="table"></div>
                 </section>
                 <footer class="table" style="width: 100%;">
                     <div id="input" class="tr">
                         <div class="td td-datum">
-                            <input id="input-datum" size="10" type="date">
+                            <input id="input-datum" placeholder="Datum" size="10" type="date">
                         </div>
                         <div class="td td-kategorie">
                             <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text" autocomplete="off">

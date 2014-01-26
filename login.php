@@ -50,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" href="main.css">
-        <script type="text/javascript" src="md5.js"></script>
         <script type="text/javascript" src="login.js"></script>
     </head>
     <body>

@@ -135,7 +135,7 @@ button, input, select {
 
 }
 
-.error{
+.error-login{
     background-color: #ff2222;
     padding: 5px;
     margin-bottom: 5px;
@@ -200,9 +200,12 @@ content{
 .clear{
     clear: both;
 }
-#error{
-    display: none;
-    color: red;
+.error{
+    position: absolute;
+    background-color: #FFD036;
+    bottom: 40px;
+    text-align: center;
+    padding: 5px;
 }
 .remove{
     cursor: pointer;
@@ -294,4 +297,21 @@ content{
     -o-user-select: none;
     user-select: none;
 }
+
+#input .td{
+    position: relative;
+}
+
+.error:after{
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-width: 10px;
+    border-style: solid;
+    border-color: #FFD036 transparent transparent transparent;
+    top: 29px;
+    left: 15px;
+}
+
 
