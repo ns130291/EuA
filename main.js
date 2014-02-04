@@ -106,7 +106,7 @@ function naechsterMonat() {
     andererMonat();
 }
 
-function andererMonat() {
+function andererMonat(callback) {
     $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'";>\uE802</span> ' + datum.format("MMMM YYYY"));
     $(".ausgabe").remove();
     if (!document.getElementById('loading-screen')) {
@@ -114,7 +114,7 @@ function andererMonat() {
         $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
     }
     window.history.pushState({}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
-    holeAusgaben();
+    holeAusgaben(callback);
 }
 
 function ausgabenAnzeigen() {
@@ -254,8 +254,7 @@ function ausgabenSpeichern() {
             datum.month(datumM.month());
             datum.year(datumM.year());
             console.log("Anderer Monat wird geladen");
-            andererMonat();
-            holeAusgaben(ausgabenSpeichernRequest);
+            andererMonat(ausgabenSpeichernRequest);
         } else {
             ausgabenSpeichernRequest();
         }
