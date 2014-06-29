@@ -5,13 +5,17 @@ window.addEventListener('DOMContentLoaded', function() {
 }, false);
 
 function login(e) {
+    var errors = document.getElementsByClassName("error-login");
+    for(var i = 0; i < errors.length; i++){
+        document.getElementById("loginformcontainer").removeChild(errors[i])
+    }
 
     var user = document.getElementById("user").value;
     if (user === "" || user === null) {
         var error = document.createElement("div");
         error.innerHTML = "Username muss angegeben werden";
         error.className = "error-login";
-        document.getElementById("login").insertBefore(error, document.getElementById("loginformcontainer"));
+        document.getElementById("loginformcontainer").insertBefore(error, document.getElementById("loginform"));
         e.preventDefault();
     }
     
@@ -20,7 +24,7 @@ function login(e) {
         var error = document.createElement("div");
         error.innerHTML = "Passwort fehlt";
         error.className = "error-login";
-        document.getElementById("login").insertBefore(error, document.getElementById("loginformcontainer"));
+        document.getElementById("loginformcontainer").insertBefore(error, document.getElementById("loginform"));
         e.preventDefault();
     }
     document.getElementById("pw").value = "";
