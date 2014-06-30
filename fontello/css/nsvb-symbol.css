@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'nsvb-symbol';
-  src: url('../font/nsvb-symbol.eot?67676060');
-  src: url('../font/nsvb-symbol.eot?67676060#iefix') format('embedded-opentype'),
-       url('../font/nsvb-symbol.woff?67676060') format('woff'),
-       url('../font/nsvb-symbol.ttf?67676060') format('truetype'),
-       url('../font/nsvb-symbol.svg?67676060#nsvb-symbol') format('svg');
+  src: url('../font/nsvb-symbol.eot?46327811');
+  src: url('../font/nsvb-symbol.eot?46327811#iefix') format('embedded-opentype'),
+       url('../font/nsvb-symbol.woff?46327811') format('woff'),
+       url('../font/nsvb-symbol.ttf?46327811') format('truetype'),
+       url('../font/nsvb-symbol.svg?46327811#nsvb-symbol') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -14,7 +14,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'nsvb-symbol';
-    src: url('../font/nsvb-symbol.svg?67676060#nsvb-symbol') format('svg');
+    src: url('../font/nsvb-symbol.svg?46327811#nsvb-symbol') format('svg');
   }
 }
 */
@@ -50,6 +50,7 @@
   /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
  
-.icon-spin3:before { content: '\e802'; } /* '' */
-.icon-plus:before { content: '\e801'; } /* '' */
 .icon-trash:before { content: '\e800'; } /* '' */
+.icon-plus:before { content: '\e801'; } /* '' */
+.icon-spin3:before { content: '\e802'; } /* '' */
+.icon-spin5:before { content: '\e803'; } /* '' */

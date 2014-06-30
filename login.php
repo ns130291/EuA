@@ -50,6 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" href="main.css">
+        <link rel="stylesheet" href="fontello/css/nsvb-symbol.css">
+        <link rel="stylesheet" href="fontello/css/animation.css">
         <script type="text/javascript" src="login.js"></script>
     </head>
     <body>

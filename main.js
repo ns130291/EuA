@@ -107,7 +107,7 @@ function naechsterMonat() {
 }
 
 function andererMonat(callback) {
-    $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'";>\uE802</span> ' + datum.format("MMMM YYYY"));
+    $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'">\uE802</span> ' + datum.format("MMMM YYYY"));
     $(".ausgabe").remove();
     if (!document.getElementById('loading-screen')) {
         $('#ausgaben').append($('<div>').css({"background-color": "#ccc"}).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({"font-family": "nsvb-symbol", "font-size": "200%"}).addClass('loading').append($('<span>').addClass('animate-spin').text('\uE802')))))
