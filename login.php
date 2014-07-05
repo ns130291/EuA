@@ -50,6 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" href="main.css">
+        <link rel="stylesheet" href="fontello/css/nsvb-symbol.css">
+        <link rel="stylesheet" href="fontello/css/animation.css">
         <script type="text/javascript" src="login.js"></script>
     </head>
     <body>
@@ -59,11 +61,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div id="loginformcontainer">
                     <?php /* irgendwas verhindert, dass auf der android tastatur "next" angezeigt wird für die formularfelder */ ?>
                     <form action="login.php" method="post" id="loginform">
-                        <div class="cf">
-                            <label for="user">Benutzer</label><input id="user" name="user" class="right" type="text"/>
+                        <div class="cf" style="padding-bottom: 5px;">
+                            <label for="user" class="login-label left">Benutzer</label><input id="user" name="user" class="right login-input" type="text"/>
                         </div>
                         <div class="cf">
-                            <label for="pw">Passwort</label><input id="pw" class="right" type="password"/>
+                            <label for="pw" class="login-label left">Passwort</label><input id="pw" class="right login-input" type="password"/>
                         </div>
                         <div class="cf" style="padding-top: 25px;">
                             <div id="loginbutton" class="right">

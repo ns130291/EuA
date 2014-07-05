@@ -14,6 +14,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
     <head>
         <title>EuA</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" href="main.css">
         <link rel="stylesheet" href="fontello/css/nsvb-symbol.css">
         <link rel="stylesheet" href="fontello/css/animation.css">

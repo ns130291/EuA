@@ -1,14 +1,11 @@
 html, body{
     height: 100%;
     margin: 0;
-}
-
-body{
-    min-width: 600px;
+    font-size: 16px;
 }
 
 #spacertop{
-    height: 40%;
+    height: 35%;
 }
 
 input{
@@ -28,6 +25,18 @@ button, input, select {
     background-image: none;
 }
 
+.login-input{
+    font-size: 16px;
+    border: none;
+    font-family: sans-serif;
+    padding: 5px;
+    border-radius: 2px;
+}
+
+.login-label{
+    padding: 5px;
+}
+
 #logincontainer{
     background-color: #4bb1ff;
     padding-top: 20px;
@@ -36,27 +45,36 @@ button, input, select {
 
 #login{
     margin: 0 auto;
-    max-width: 305px;
     font-family: sans-serif;
 }
 
 #loginformcontainer{
-    margin-left: 5px;
+    margin-left: 25px;
+    margin-right: 25px;
 }
 
-#submit{
+#loginbutton{
     background-color: white;
     border: 2px solid #3388ff;
-    padding: 3px 10px;
-    font-weight: bold;
+    padding: 5px 10px;
     cursor: pointer;
     color: #114480;
+    font-size: 16px;
+    border-radius: 3px;
 }
 
-#submit:hover{
+#loginbutton:hover{
     background-color:#3388ff;
     color: white;
     border: 2px solid #0066ff;
+}
+
+#submit, #submit:hover{
+    border: none;
+    background: none;
+    color: #114480;
+    font-size: 16px;
+    cursor: pointer;
 }
 
 .bar{
@@ -84,7 +102,7 @@ button, input, select {
 }
 
 #month{
-    width: 20ch;
+    width: 15ch;
 }
 
 #spendings{
@@ -136,9 +154,10 @@ button, input, select {
 }
 
 .error-login{
-    background-color: #ff2222;
+    background-color: #FF6964;
     padding: 5px;
     margin-bottom: 5px;
+    border-radius: 2px;
 }
 
 .right{
@@ -174,6 +193,9 @@ button, input, select {
     display: inline-block;
     border: 1px solid transparent;
     margin-left: 5px;
+}
+.edit{
+    display: none;
 }
 .edit:hover, .cancel:hover, .update:hover{
     border: 1px solid black;
@@ -268,19 +290,20 @@ content{
 }
 
 .td-kategorie{
-    width: 15ch;
+    width: 7ch;
 }
 
 .td-preis{
-    width: 10ch;
+    width: 7ch;
 }
 
 .td-beschreibung{
-    width: 150px;
+    width: 0;
+    display: none;
 }
 
 .td-optionen{
-    width: 70px;
+    width: 30px;
 }
 
 .loading{
@@ -314,4 +337,43 @@ content{
     left: 15px;
 }
 
+@media (min-width:400px) {
+    #login{
+        max-width: 360px;
+    }
 
+    .td-kategorie{
+        width: 10ch;
+    }
+}
+
+@media (min-width:600px) {
+    body{
+        min-width: 600px;
+    }
+
+    .td-beschreibung{
+        width: 15ch;
+        display: table-cell;
+    }
+
+    .td-beschreibung{
+        width: 150px;
+    }
+
+    .edit{
+        display: inline-block;
+    }
+
+    .td-optionen{
+        width: 70px;
+    }
+
+    .td-preis{
+        width: 10ch;
+    }
+
+    #month{
+        width: 20ch;
+    }
+}
