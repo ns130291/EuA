@@ -44,6 +44,12 @@ function errorHandling(json) {
         } else {
             alert("Sie sind nicht eingeloggt");
         }
+    } else if (json['error'] === 'server') {
+        if (json['msg']) {
+            alert(json['msg']);
+        } else {
+            alert("Unbekannter Server Fehler");
+        }
     } else {
         alert("Unbekannter Fehler");
     }
@@ -177,14 +183,14 @@ function fehlerAnzeigen(error) {
     }
 }
 
-function fehlerLöschen(){
+function fehlerLöschen() {
     $('#input .error').remove();
 }
 
 function ausgabenSpeichern() {
     var error = new Object();
     var showError = false;
-    
+
     fehlerLöschen();
 
     var datumAusgabe = $('#input-datum').val();
@@ -215,22 +221,20 @@ function ausgabenSpeichern() {
         showError = true;
     } else {
         var preisDB = 0;
+        preis = convertPreisToComma(preis);
         if (preis.indexOf(",") > 0) {
             preisDB = preis.replace(",", ".");
         } else {
             preisDB = preis;
             if (preis.indexOf(".") > 0) {
                 preisDB = preis;
-                preis = preis.replace(".", ",");
-            } else {
-                preis += ",00";
             }
         }
     }
 
     var beschreibung = $('#input-beschreibung').val();
-    
-    if (showError) {        
+
+    if (showError) {
         fehlerAnzeigen(error);
     } else {
         ausgabe.datumDB = datumDB;
@@ -267,12 +271,12 @@ function ausgabenSpeichernRequest() {
     var params = new Object();
     params.datum = ausgabe.datumDB;
     if (ausgabe.kategorie) {
-        params.kategorie = ausgabe.kategorie;
+        params.kategorie = encodeURIComponent(ausgabe.kategorie);
     }
     params.art = encodeURIComponent(ausgabe.art);
     params.preis = ausgabe.preisDB;
     if (ausgabe.beschreibung) {
-        params.beschreibung = ausgabe.beschreibung;
+        params.beschreibung = encodeURIComponent(ausgabe.beschreibung);
     }
 
     $.ajax("saveAusgabe.php", {
@@ -283,7 +287,7 @@ function ausgabenSpeichernRequest() {
         if (json['error'] === undefined) {
             var element = createRow(json['id'], ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
             element.className += " new";
-            //document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("input"));
+            //TODO: insert new Ausgabe at the appropriate position
             document.getElementById("ausgabenliste").appendChild(element);
 
             addSpendings(ausgabe.preisDB);
@@ -348,8 +352,8 @@ function createRow(id, datum, kategorie, art, preis, beschreibung) {
     html += beschreibung;
     html += '</div>';
     html += '<div class="td td-optionen">';
+    html += '<div class="edit icon-pencil"></div>';
     html += '<div class="remove icon-trash"></div>';
-    html += '<div class="edit">edit</div>';
     html += '</div>';
     element.innerHTML = html;
     element.getElementsByClassName("remove")[0].addEventListener("click", removeEntry, false);
@@ -366,27 +370,28 @@ function editEntry(e) {
     }
 
     var update = document.createElement("div");
-    update.innerHTML = "Update";
     update.addEventListener("click", updateEntry, "false");
-    update.className = "update";
+    update.className = "update icon-ok";
 
     var cancel = document.createElement("div");
-    cancel.innerHTML = "&times;";
     cancel.addEventListener("click", cancelEditEntry, "false");
-    cancel.className = "cancel";
+    cancel.className = "cancel icon-cancel";
 
     el.parentNode.appendChild(update);
     el.parentNode.appendChild(cancel);
 
-    //TODO: jedes child einzeln behandeln
     for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
         if (ausgabenElement.childNodes[i].className.contains("td")) {
-            //alert("TD in if");
             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
+                //Preis von €-Zeichen trennen
                 var preis = ausgabenElement.childNodes[i].innerHTML.split(' ')[0];
-                ausgabenElement.childNodes[i].innerHTML = '<input size="10" class="preis" placeholder="Preis in &euro;" type="number" min="0.01" step="0.01" value="' + preis + '"><span>&euro;</span>';
+                preis = convertPreisToPoint(preis);
+                ausgabenElement.childNodes[i].setAttribute('data-input', preis);
+                ausgabenElement.childNodes[i].innerHTML = '<input size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01" value="' + preis + '"><span>&euro;</span>';
             } else {
-                ausgabenElement.childNodes[i].innerHTML = '<input type="text" value="' + ausgabenElement.childNodes[i].innerHTML + '">';
+                var input = ausgabenElement.childNodes[i].innerHTML;
+                ausgabenElement.childNodes[i].setAttribute('data-input', input);
+                ausgabenElement.childNodes[i].innerHTML = '<input type="text" value="' + input + '">';
             }
         }
     }
@@ -401,14 +406,180 @@ function cancelEditEntry(e) {
     for (var i = 0; i < parent.childNodes.length; i++) {
         parent.childNodes[i].style.display = "";
     }
-    //TODO input wieder in divs umwandeln
+
+    var ausgabenElement = parent.parentNode;
+    for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
+        if (ausgabenElement.childNodes[i].className.contains("td")) {
+            var text = ausgabenElement.childNodes[i].getAttribute('data-input');
+            $(ausgabenElement.childNodes[i]).children('input').remove();
+            if (ausgabenElement.childNodes[i].classList.contains('preis')) {
+                $(ausgabenElement.childNodes[i]).children('span').remove();
+                $(ausgabenElement.childNodes[i]).html(convertPreisToComma(text) + ' €');
+            } else {
+                $(ausgabenElement.childNodes[i]).html(text);
+            }
+        }
+    }
 }
 
 function updateEntry(e) {
+    var error = new Object();
+    var showError = false;
+
+    fehlerLöschen();//TODO: Anpassen
+
+
+    var el = e.target;
+    var parent = el.parentNode;
+    parent.removeChild(parent.getElementsByClassName("update")[0]);
+    parent.removeChild(parent.getElementsByClassName("cancel")[0]);
+
+    $(parent).append($('<div/>').addClass('change animate-spin icon-spin5'));
+
+    var ausgabenElement = parent.parentNode;
+
+    var params = new Object();
+
+    if ($(ausgabenElement).children('.td-datum').attr('data-input') !== $(ausgabenElement).children('.td-datum').children('input').val()) {
+        var datumAusgabe = $(ausgabenElement).children('.td-datum').children('input').val();
+        if (datumAusgabe === undefined || datumAusgabe === "") {
+            error['datum'] = "Datum fehlt";
+            showError = true;
+        } else {
+            var datumDB = "";
+            if (datumAusgabe.indexOf(".") > 0) {
+                datumDB = localToDate(datumAusgabe);
+            } else {
+                datumDB = datumAusgabe;
+                datumAusgabe = dateToLocal(datumAusgabe);
+            }
+            params.datum = datumDB;
+        }
+    }
+
+    if ($(ausgabenElement).children('.td-kategorie').attr('data-input') !== $(ausgabenElement).children('.td-kategorie').children('input').val()) {
+        params.kategorie = encodeURIComponent($(ausgabenElement).children('.td-kategorie').children('input').val());
+    }
+
+    if ($(ausgabenElement).children('.td-art').attr('data-input') !== $(ausgabenElement).children('.td-art').children('input').val()) {
+        var art = $(ausgabenElement).children('.td-art').children('input').val();
+        if (art === undefined || art === "") {
+            error['art'] = "Art der Ausgabe fehlt";
+            showError = true;
+        } else {
+            params.art = encodeURIComponent(art);
+        }
+    }
+
+    if ($(ausgabenElement).children('.td-preis').attr('data-input') !== $(ausgabenElement).children('.td-preis').children('input').val()) {
+        var preis = $(ausgabenElement).children('.td-preis').children('input').val();
+        if (preis === undefined || preis === "") {
+            error['preis'] = "Preis fehlt";
+            showError = true;
+        } else {
+            var preisDB = 0;
+            if (preis.indexOf(",") > 0) {
+                preisDB = preis.replace(",", ".");
+            } else {
+                preisDB = preis;
+            }
+            params.preis = preisDB;
+        }
+
+    }
+
+    if ($(ausgabenElement).children('.td-beschreibung').attr('data-input') !== $(ausgabenElement).children('.td-beschreibung').children('input').val()) {
+        params.beschreibung = encodeURIComponent($(ausgabenElement).children('.td-beschreibung').children('input').val());
+    }
+
+    params.idausgabe = $(ausgabenElement).attr('data-id');
+
+    if (showError) {
+        //TODO: Fehler anzeigen, spinner entfernen, Schaltflächen wieder hinzufügen
+    } else {
+        $.ajax("editAusgabe.php", {
+            type: 'POST',
+            data: params
+        }).done(function(result) {
+            var json = JSON.parse(result);
+            if (json['error'] === undefined) {
+                var datumM;
+                if (params.datum.split("-")[0].length < 4) {
+                    datumM = moment(params.datum, "YY-M-D");
+                }
+                else {
+                    datumM = moment(params.datum, "YYYY-M-D");
+                }
+
+                if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
+                    datum.month(datumM.month());
+                    datum.year(datumM.year());
+                    console.log("Anderer Monat wird geladen");
+                    andererMonat();
+                    //andererMonat(/*geänderte Ausgabe markeiren*/);
+                } else {
+                    for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
+                        if (ausgabenElement.childNodes[i].className.contains("td")) {
+                            var text = $(ausgabenElement.childNodes[i]).children('input').val();
+                            $(ausgabenElement.childNodes[i]).children('input').remove();
+                            if (ausgabenElement.childNodes[i].classList.contains('preis')) {
+                                $(ausgabenElement.childNodes[i]).children('span').remove();
+                                $(ausgabenElement.childNodes[i]).html(convertPreisToComma(text) + ' €');
+                            } else {
+                                $(ausgabenElement.childNodes[i]).html(text);
+                            }
+                        }
+                    }
+
+                    if (params.preis) {
+                        var preisAlt = convertPreisToPoint($(ausgabenElement).children('.td-preis').attr('data-input'));
+                        var preisNeu = convertPreisToPoint(params.preis);
+                        var change = -preisAlt + preisNeu;
+                        addSpendings(parseFloat(change));
+                    }
+
+                    $(ausgabenElement).children('.td-optionen').children('.change').remove();
+
+                    $(ausgabenElement).children('.td-optionen').children().css('display', '');
+                }
+            } else {
+                $(ausgabenElement).children('.td-optionen').children('.change').remove();
+
+                var update = document.createElement("div");
+                update.addEventListener("click", updateEntry, "false");
+                update.className = "update icon-ok";
+
+                var cancel = document.createElement("div");
+                cancel.addEventListener("click", cancelEditEntry, "false");
+                cancel.className = "cancel icon-cancel";
+
+                $(ausgabenElement).children('.td-optionen').append(update, cancel);
+
+                errorHandling(json);
+            }
+        }).fail(function(msg) {
+            $(ausgabenElement).children('.td-optionen').children('.change').remove();
+
+            var update = document.createElement("div");
+            update.addEventListener("click", updateEntry, "false");
+            update.className = "update icon-ok";
+
+            var cancel = document.createElement("div");
+            cancel.addEventListener("click", cancelEditEntry, "false");
+            cancel.className = "cancel icon-cancel";
+
+            $(ausgabenElement).children('.td-optionen').append(update, cancel);
+            
+            alert("Ändern der Ausgabe fehlgeschlagen: " + msg);
+        });
+    }
     //TODO abspeichern
+    //Gesamtausgaben aktualisieren
+    //Bearbeiten & löschen wieder anzeigen
 }
 
 function convertPreisToPoint(preis) {
+    preis += '';
     preis = preis.replace(",", ".");
     return parseFloat(preis);
 }
@@ -416,6 +587,13 @@ function convertPreisToPoint(preis) {
 function convertPreisToComma(preis) {
     preis += "";
     preis = preis.replace(".", ",");
+    if (preis.split(",").length > 1) {
+        if (preis.split(",")[1].length === 1) {
+            preis += '0';
+        }
+    } else {
+        preis += ',00';
+    }
     return preis;
 }
 

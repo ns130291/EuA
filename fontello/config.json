@@ -19,9 +19,27 @@
       "src": "fontelico"
     },
     {
+      "uid": "ce7452abce8b55ded1c393997a51e6b3",
+      "css": "ok",
+      "code": 59396,
+      "src": "elusive"
+    },
+    {
+      "uid": "499b745a2e2485bdd059c3a53d048e5f",
+      "css": "cancel",
+      "code": 59397,
+      "src": "elusive"
+    },
+    {
       "uid": "55e2ff85b1c459c383f46da6e96014b0",
       "css": "plus",
       "code": 59393,
+      "src": "elusive"
+    },
+    {
+      "uid": "62b0580ee8edc3a3edfbf68a47c852d5",
+      "css": "pencil",
+      "code": 59398,
       "src": "elusive"
     },
     {

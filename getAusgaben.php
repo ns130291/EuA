@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (!$link) {
         //500
-        header("HTTP/1.1 500 Internal Server Error");
-        die('Verbindung schlug fehl: ' . mysql_error());
+        //header("HTTP/1.1 500 Internal Server Error");
+        die('{"error":"server","msg":"Datenbankfehler: ' . mysql_error() . '"}');
     }
     /* $month = date("n");
       $year = date("Y"); */
@@ -37,9 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $result = mysql_query(sprintf('CALL eua.holeAusgabenMonat("%s","%s");', $startDate, $endDate));
     //echo sprintf('CALL eua.holeAusgabenMonat("%s","%s");', $startDate, $endDate);
     if (!$result) {
-        //header 404
-        header("HTTP/1.1 404 Not Found");
-        die('Keine Ausgaben in diesem Monat');
+        die('{"error":"server","msg":"Keine Ergebnisse"}');
     } else {
         $rows = array();
         while ($array = mysql_fetch_assoc($result)) {
@@ -47,23 +45,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $ausgaben = json_encode($rows);
 
+        
+        //TODO: Why do I close the connection and reopen it afterwards?
         mysql_close($link);
         $link = mysql_connect(':/var/run/mysqld/mysqld.sock', 'eua');
         if (!$link) {
             //500
-            header("HTTP/1.1 500 Internal Server Error");
-            die('Verbindung schlug fehl: ' . mysql_error());
+            //header("HTTP/1.1 500 Internal Server Error");
+            die('{"error":"server","msg":"Datenbankfehler: ' . mysql_error() . '"}');
         }
         mysql_set_charset('utf8');
         $result = mysql_query(sprintf('CALL eua.summeAusgabenMonat("%s","%s");', $startDate, $endDate));
 
         if (!$result) {
-            //header 404
-            header("HTTP/1.1 404 Not Found");
-            die('Keine Ausgaben in diesem Monat: Summe fehlt ' . mysql_error());
+            die('{"error":"server","msg":"Keine Ausgaben in diesem Monat: Summe fehlt:' . mysql_error() . ' "}');
         } else {
             $row = mysql_fetch_row($result);
-            if($row[0]==""){
+            if ($row[0] == "") {
                 $row[0] = "0.00";
             }
             $json = '{"summeausgaben":"' . $row[0] . '","ausgaben":' . $ausgaben . '}';
@@ -71,5 +69,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
     mysql_close($link);
+} else {
+    $json = array();
+
+    $json["error"] = "wrong_method";
+    $json["msg"] = "Only POST requests are accepted";
+
+    echo json_encode($json);
 }
 ?>

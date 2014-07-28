@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <div class="cf" style="padding-top: 25px;">
                             <div id="loginbutton" class="right">
-                                <input type="submit" id="submit" value="Login"/>
+                                <input type="submit" id="submitBtn" value="Login"/>
                                 <input id="hidden" name="pw" type="hidden"/>
                             </div>
                             <a href="#" class="left" style="display: none;">Account anlegen</a>

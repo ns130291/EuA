@@ -16,10 +16,6 @@ header{
     overflow: auto;
 }
 
-.remove:hover{
-    color: #D40000;
-}
-
 /* fix for FF Android background for inputs */
 button, input, select {
     background-image: none;
@@ -69,7 +65,7 @@ button, input, select {
     border: 2px solid #0066ff;
 }
 
-#submit, #submit:hover{
+#submitBtn, #submitBtn:hover{
     border: none;
     background: none;
     color: #114480;
@@ -191,14 +187,26 @@ button, input, select {
 .remove, .edit, .cancel, .update{
     cursor: pointer;
     display: inline-block;
-    border: 1px solid transparent;
-    margin-left: 5px;
+    border: 1px solid transparent;/* remove? */
+}
+.change{
+    display: inline-block;
+    border: 1px solid transparent;/* remove? */
 }
 .edit{
     display: none;
 }
-.edit:hover, .cancel:hover, .update:hover{
-    border: 1px solid black;
+
+.update:hover{
+    color: #74D400;
+}
+
+.remove:hover, .cancel:hover{
+    color: #D40000;
+}
+
+.edit:hover{
+    color: #4BB1FF;
 }
 
 
@@ -353,12 +361,12 @@ content{
     }
 
     .td-beschreibung{
-        width: 15ch;
+        width: 150px;
         display: table-cell;
     }
 
-    .td-beschreibung{
-        width: 150px;
+    .td-kategorie{
+        width: 15ch;
     }
 
     .edit{
@@ -366,7 +374,7 @@ content{
     }
 
     .td-optionen{
-        width: 70px;
+        width: 50px;
     }
 
     .td-preis{

@@ -40,5 +40,5 @@ function login(e) {
     load.className = "animate-spin";
     load.style = "font-family: 'nsvb-symbol'";
     load.innerHTML = "\uE803";
-    document.getElementById("loginbutton").insertBefore(load, document.getElementById("submit"));
+    document.getElementById("loginbutton").insertBefore(load, document.getElementById("submitBtn"));
 }

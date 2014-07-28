@@ -8,8 +8,11 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $link = mysql_connect(':/var/run/mysqld/mysqld.sock', 'eua');
+
     if (!$link) {
-        die('{"error":"wrong_method","msg"."connection failed: ' . mysql_error() . '"}');
+        //500
+        //header("HTTP/1.1 500 Internal Server Error");
+        die('{"error":"server","msg":"Datenbankfehler: ' . mysql_error() . '"}');
     }
 
     mysql_set_charset('utf8');
@@ -17,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $result = mysql_query('CALL eua.summeAusgabenMonate();');
 
     if (!$result) {
-        die('{"error":"no_results"}');
+        die('{"error":"server","msg":"Keine Ergebnisse"}');
     } else {
         $rows = array();
         while ($array = mysql_fetch_assoc($result)) {
@@ -28,6 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo $json;
     }
 } else {
-    die('{"error":"wrong_method","msg"."only POST is allowed"}');
+    $json = array();
+
+    $json["error"] = "wrong_method";
+    $json["msg"] = "Only POST requests are accepted";
+
+    echo json_encode($json);
 }
 ?>

@@ -12,10 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (!$link) {
         //500
-        header("HTTP/1.1 500 Internal Server Error");
-        die('Verbindung schlug fehl: ' . mysql_error());
+        //header("HTTP/1.1 500 Internal Server Error");
+        die('{"error":"server","msg":"Datenbankfehler: ' . mysql_error() . '"}');
     }
 
+    if (!isset($_POST["idausgabe"])) {
+        die('{"error":"server","msg":"Ausgaben ID fehlt"}');
+    }
     $idausgabe = $_POST["idausgabe"];
 
     mysql_set_charset('utf8');
@@ -33,13 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     echo json_encode($json);
 
-    echo mysql_error();
+    //echo mysql_error();
     mysql_close($link);
-}else{
+} else {
     $json = array();
 
-    $json["error"] = "Only POST requests are accepted";
-    
+    $json["error"] = "wrong_method";
+    $json["msg"] = "Only POST requests are accepted";
+
     echo json_encode($json);
 }
 ?>
