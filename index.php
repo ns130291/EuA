@@ -21,7 +21,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
         <script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
         <script type="text/javascript" src="js/moment.min.js"></script>
         <script type="text/javascript" src="js/de.js"></script>
-        <script type="text/javascript" src="json2.js"></script>
+        <script type="text/javascript" src="js/json2.js"></script>
         <script type="text/javascript" src="main.js"></script>
     </head>
     <body>

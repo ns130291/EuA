@@ -21,6 +21,10 @@ button, input, select {
     background-image: none;
 }
 
+#load{
+    font-family: 'nsvb-symbol';
+}
+
 .login-input{
     font-size: 16px;
     border: none;

@@ -1,3 +1,9 @@
+"use strict";
+
+var json = null;
+moment.lang("de");
+var datum = moment();
+var ausgabe = new Object();
 
 $(document).ready(function() {
     $("#next-month").click(naechsterMonat);
@@ -5,9 +11,36 @@ $(document).ready(function() {
     $("#spendings").click(uebersichtMonate);
     $("#plusbutton").click(ausgabenSpeichern);
     $(window).resize(resize);
+    $(window).on('popstate', back);
     resize();
-    holeAusgaben();
+    ausgabenLaden();
 });
+
+function back(e) {
+    var state = e.originalEvent.state;
+    if (state !== null && state.year !== undefined && state.month !== undefined) {
+        datum.year(state.year).month(state.month);
+    } else {
+        datum = moment();
+    }
+    loadingScreen();
+    holeAusgaben();
+}
+
+function ausgabenLaden() {
+    var location = window.location.search;
+    if (location !== null && location !== "") {
+        var regYear = new RegExp("year=(\\d{4})");
+        var regMonth = new RegExp("month=(\\d{1,2})");
+        var year = regYear.exec(location);
+        var month = regMonth.exec(location);
+        if (year.length === 2 && month.length === 2 && month[1] >= 1 && month[1] <= 12) {
+            datum.month(month[1] - 1);
+            datum.year(year[1]);
+        }
+    }
+    holeAusgaben();
+}
 
 function resize() {
     $('#ausgaben').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height());
@@ -54,11 +87,6 @@ function errorHandling(json) {
         alert("Unbekannter Fehler");
     }
 }
-
-var json = null;
-moment.lang("de");
-var datum = moment();
-var ausgabe = new Object();
 
 /**
  * @return XMLHttpRequest
@@ -113,14 +141,18 @@ function naechsterMonat() {
 }
 
 function andererMonat(callback) {
+    loadingScreen();
+    window.history.pushState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
+    holeAusgaben(callback);
+}
+
+function loadingScreen() {
     $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'">\uE802</span> ' + datum.format("MMMM YYYY"));
     $(".ausgabe").remove();
     if (!document.getElementById('loading-screen')) {
         $('#ausgaben').append($('<div>').css({"background-color": "#ccc"}).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({"font-family": "nsvb-symbol", "font-size": "200%"}).addClass('loading').append($('<span>').addClass('animate-spin').text('\uE802')))))
         $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
     }
-    window.history.pushState({}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
-    holeAusgaben(callback);
 }
 
 function ausgabenAnzeigen() {
@@ -569,7 +601,7 @@ function updateEntry(e) {
             cancel.className = "cancel icon-cancel";
 
             $(ausgabenElement).children('.td-optionen').append(update, cancel);
-            
+
             alert("Ändern der Ausgabe fehlgeschlagen: " + msg);
         });
     }
