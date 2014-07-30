@@ -1,10 +1,40 @@
 html, body{
     height: 100%;
     margin: 0;
+    font-size: 16px;
 }
 
 #spacertop{
-    height: 40%;
+    height: 35%;
+}
+
+input{
+    border-radius: 0;
+}
+
+header{
+    overflow: auto;
+}
+
+/* fix for FF Android background for inputs */
+button, input, select {
+    background-image: none;
+}
+
+#load{
+    font-family: 'nsvb-symbol';
+}
+
+.login-input{
+    font-size: 16px;
+    border: none;
+    font-family: sans-serif;
+    padding: 5px;
+    border-radius: 2px;
+}
+
+.login-label{
+    padding: 5px;
 }
 
 #logincontainer{
@@ -15,38 +45,127 @@ html, body{
 
 #login{
     margin: 0 auto;
-    max-width: 300px;
     font-family: sans-serif;
 }
 
-#loginbutton{
-    margin-top: 30px;
+#loginformcontainer{
+    margin-left: 25px;
+    margin-right: 25px;
 }
 
-#submit{
+#loginbutton{
     background-color: white;
     border: 2px solid #3388ff;
-    padding: 3px 10px;
-    font-weight: bold;
+    padding: 5px 10px;
     cursor: pointer;
     color: #114480;
+    font-size: 16px;
+    border-radius: 3px;
 }
 
-#submit:hover{
+#loginbutton:hover{
     background-color:#3388ff;
     color: white;
     border: 2px solid #0066ff;
 }
 
-.error{
-  background-color: #ff2222;
-  padding: 5px;
-  margin-bottom: 5px;
-  border-radius: 5px;
+#submitBtn, #submitBtn:hover{
+    border: none;
+    background: none;
+    color: #114480;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.bar{
+    background-color: #4bb1ff;   
+    padding: 5px;
+}
+
+.bar-element{
+    display: inline-block;
+    background-color: white;
+    border-radius: 5px;
+    padding: 3px;
+    margin-right: 5px;
+    min-width: 30px;
+    text-align: center;
+    border: 1px solid #666666;
+}
+
+.bar-element:last-child{
+    margin-right: 0;
+}
+
+.bar-element:hover{
+    cursor: pointer;
+}
+
+#month{
+    width: 15ch;
+}
+
+#spendings{
+    position: relative;
+}
+
+#month-overview{
+    position:absolute;
+    top:-1px;
+    right:-1px;
+    width:250px;
+    height:500px;
+    background-color:white;
+    border-radius: 5px;
+    padding: 10px;
+    border: 1px solid #666666;
+    overflow-y: scroll;
+    cursor: auto;
+    text-align: left;
+    animation: open 1s;
+    -webkit-animation: open 1s;
+}
+
+@-webkit-keyframes open{
+    0% {
+        width: 60px;
+        height: 120px;
+        opacity: 0;
+    }
+    100% {
+        width:250px;
+        height:500px;
+        opacity: 1;    
+    }
+}
+
+@keyframes open{
+    0% {
+        width: 60px;
+        height: 120px;
+        opacity: 0;
+    }
+    100% {
+        width:250px;
+        height:500px;
+        opacity: 1;    
+    }
+
+}
+
+.error-login{
+    background-color: #FF6964;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 2px;
 }
 
 .right{
     float: right;
+}
+
+.left{
+    float: left;
 }
 
 .cf:before,
@@ -60,78 +179,214 @@ html, body{
 }
 
 .new{
-    background-color: green;
+    animation: fadeout 3s;
 }
 
-@media (min-width:600px){
-    content{
-        border: 0 none;
-        margin: 0 auto;
-        max-width: 800px;
-        padding: 0;
-        width: 100%;
-        font-family: sans-serif;
-    }
-    #ausgaben{
+@keyframes fadeout{
+    0% {background-color: green;}
+    33% {background-color: green;}
+    100% {background-color: none}
+}
 
-    }
-    #einnahmen{
-    }
-    .clear{
-        clear: both;
-    }
-    #error{
-        display: none;
-        color: red;
-    }
-    .remove{
-        cursor: pointer;
+.remove, .edit, .cancel, .update{
+    cursor: pointer;
+    display: inline-block;
+    border: 1px solid transparent;/* remove? */
+}
+.change{
+    display: inline-block;
+    border: 1px solid transparent;/* remove? */
+}
+.edit{
+    display: none;
+}
+
+.update:hover{
+    color: #74D400;
+}
+
+.remove:hover, .cancel:hover{
+    color: #D40000;
+}
+
+.edit:hover{
+    color: #4BB1FF;
+}
+
+
+content{
+    border: 0 none;
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 0;
+    width: 100%;
+    font-family: sans-serif;
+}
+#ausgaben{
+    overflow-y: auto;
+}
+#ausgabenliste{
+
+}
+#einnahmen{
+
+}
+.clear{
+    clear: both;
+}
+.error{
+    position: absolute;
+    background-color: #FFD036;
+    bottom: 40px;
+    text-align: center;
+    padding: 5px;
+}
+.remove{
+    cursor: pointer;
+}
+
+.table {
+    display:table;
+    width: 100%;
+    table-layout: fixed;
+}
+.tr {
+    display:table-row;
+}
+.td {
+    display:table-cell;
+    vertical-align: top;
+    border-top: 1px solid darkgray;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    position: relative;
+}
+.td textarea{
+    height: 1.2em;
+    margin: 0;
+    padding: 1px 0;
+}
+.td textarea, .td input{
+    border: none;
+    width: 100%;
+}
+
+.td input.preis{
+    width: 80%;
+}
+.th{
+    font-weight: bold;
+}
+.th .td{
+    border-bottom: 1px solid darkgray;
+}
+.tr:first-child{
+    border: none;
+}
+.preis{
+    text-align: right;
+}
+.plus{
+    cursor: pointer;
+}
+
+.plus:hover{
+    color: #4bb1ff;
+}
+
+.td-datum{
+    width: 10ch;
+}
+
+.td-kategorie{
+    width: 7ch;
+}
+
+.td-preis{
+    width: 7ch;
+}
+
+.td-beschreibung{
+    width: 0;
+    display: none;
+}
+
+.td-optionen{
+    width: 30px;
+}
+
+.loading{
+    vertical-align: middle;
+    text-align: center;
+}
+
+#previous-month, #next-month{
+    -webkit-user-select: none; /* Chrome/Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+
+    /* Rules below not implemented in browsers yet */
+    -o-user-select: none;
+    user-select: none;
+}
+
+#input .td{
+    position: relative;
+}
+
+.error:after{
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-width: 10px;
+    border-style: solid;
+    border-color: #FFD036 transparent transparent transparent;
+    top: 29px;
+    left: 15px;
+}
+
+@media (min-width:400px) {
+    #login{
+        max-width: 360px;
     }
 
-    div.table {
-        display:table;
+    .td-kategorie{
+        width: 10ch;
     }
-    div.tr {
-        display:table-row;
+}
+
+@media (min-width:600px) {
+    body{
+        min-width: 600px;
     }
-    div.td {
-        display:table-cell;
-        vertical-align: top;
-        border-top: 1px solid darkgray;
-        padding-top: 5px;
-        padding-bottom: 5px;
-        padding-left: 5px;
+
+    .td-beschreibung{
+        width: 150px;
+        display: table-cell;
     }
-    .td textarea{
-        height: 1.2em;
-        margin: 0;
-        padding: 1px 0;
+
+    .td-kategorie{
+        width: 15ch;
     }
-    .td textarea, .td input{
-        border: none;
-        width: 100%;
+
+    .edit{
+        display: inline-block;
     }
-    .td textarea:focus, .td input:focus{
-        border: 1px solid orange;
+
+    .td-optionen{
+        width: 50px;
     }
-    .th{
-        font-weight: bold;
+
+    .td-preis{
+        width: 10ch;
     }
-    .th .td{
-        border-bottom: 1px solid darkgray;
-    }
-    .tr:first-child{
-        border: none;
-    }
-    .preis{
-        text-align: right;
-    }
-    #plusbutton{
-        cursor: pointer;
-        border: 1px solid black;
-        margin: 10px;
-        border-radius: 3px;
-        background-color: lightgrey;
-        padding: 3px;
+
+    #month{
+        width: 20ch;
     }
 }

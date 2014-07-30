@@ -48,29 +48,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <head>
         <title>Login</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" href="main.css">
-        <script type="text/javascript" src="md5.js"></script>
+        <link rel="stylesheet" href="fontello/css/nsvb-symbol.css">
+        <link rel="stylesheet" href="fontello/css/animation.css">
         <script type="text/javascript" src="login.js"></script>
     </head>
     <body>
         <div id="spacertop"></div>
         <div id="logincontainer">
             <div id="login">
-                <form action="login.php" method="post" id="loginform">
-                    <div class="cf">
-                        <label for="user">Benutzer</label><input id="user" name="user" class="right" type="text"/>
-                    </div>
-                    <div class="cf">
-                        <label for="pw">Passwort</label><input id="pw" class="right" type="password"/>
-                    </div>
-                    <div class="cf">
-                        <div id="loginbutton" class="right">
-                            <input type="submit" id="submit" value="Login"/>
-                            <input id="hidden" name="pw" type="hidden"/>
+                <div id="loginformcontainer">
+                    <?php /* irgendwas verhindert, dass auf der android tastatur "next" angezeigt wird für die formularfelder */ ?>
+                    <form action="login.php" method="post" id="loginform">
+                        <div class="cf" style="padding-bottom: 5px;">
+                            <label for="user" class="login-label left">Benutzer</label><input id="user" name="user" class="right login-input" type="text"/>
                         </div>
-                        <a href="#">Account anlegen</a>
-                    </div>
-                </form>
+                        <div class="cf">
+                            <label for="pw" class="login-label left">Passwort</label><input id="pw" class="right login-input" type="password"/>
+                        </div>
+                        <div class="cf" style="padding-top: 25px;">
+                            <div id="loginbutton" class="right">
+                                <input type="submit" id="submitBtn" value="Login"/>
+                                <input id="hidden" name="pw" type="hidden"/>
+                            </div>
+                            <a href="#" class="left" style="display: none;">Account anlegen</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </body>

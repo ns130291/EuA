@@ -1,46 +1,92 @@
-
-window.onDomReady = function(fn) {
-    //W3C-compliant browser
-    if (document.addEventListener) {
-        document.addEventListener("DOMContentLoaded", fn, false);
-    }
-    //IE
-    else {
-        document.onreadystatechange = function() {
-            // DOM is ready
-            if (document.readyState == "interactive" || document.readyState == "complete") {
-                fn();
-                document.onreadystatechange = function() {
-                };
-            }
-        };
-    }
-}
-
-/**
- * gibt alle childNodes vom Typ Element zurück
- * @return array mit Child-Elements
- */
-HTMLElement.prototype.getChildElements = function()
-{
-    var a = [];
-    var tags = this.childNodes;
-
-    for (var i = 0; i < tags.length; i++)
-    {
-        if (tags[i].nodeType == 1)
-        {
-            a.push(tags[i]);
-        }
-    }
-    return a;
-}
-
-window.onDomReady(function() {
-    holeAusgaben();
-})
+"use strict";
 
 var json = null;
+moment.lang("de");
+var datum = moment();
+var ausgabe = new Object();
+
+$(document).ready(function() {
+    $("#next-month").click(naechsterMonat);
+    $("#previous-month").click(vorherigerMonat);
+    $("#spendings").click(uebersichtMonate);
+    $("#plusbutton").click(ausgabenSpeichern);
+    $(window).resize(resize);
+    $(window).on('popstate', back);
+    resize();
+    ausgabenLaden();
+});
+
+function back(e) {
+    var state = e.originalEvent.state;
+    if (state !== null && state.year !== undefined && state.month !== undefined) {
+        datum.year(state.year).month(state.month);
+    } else {
+        datum = moment();
+    }
+    loadingScreen();
+    holeAusgaben();
+}
+
+function ausgabenLaden() {
+    var location = window.location.search;
+    if (location !== null && location !== "") {
+        var regYear = new RegExp("year=(\\d{4})");
+        var regMonth = new RegExp("month=(\\d{1,2})");
+        var year = regYear.exec(location);
+        var month = regMonth.exec(location);
+        if (year.length === 2 && month.length === 2 && month[1] >= 1 && month[1] <= 12) {
+            datum.month(month[1] - 1);
+            datum.year(year[1]);
+        }
+    }
+    holeAusgaben();
+}
+
+function resize() {
+    $('#ausgaben').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height());
+    $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
+}
+
+function uebersichtMonate() {
+    $.post('getAusgabenUebersicht.php', function(data) {
+        var json = JSON.parse(data);
+        if (json['error'] === undefined) {
+            if (json.ausgaben) {
+                var el = $("<div>").attr("id", "month-overview").click(function() {
+                    $(this).remove();
+                    return false;
+                });
+                var ausgaben = json.ausgaben;
+                for (var x in ausgaben) {
+                    var tempDate = moment([ausgaben[x].jahr, ausgaben[x].monat - 1]);
+                    var preis = (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis;
+                    $("<div>").html(tempDate.format("MMM YYYY") + ' ' + preis + ' €<br>').appendTo(el);
+                }
+                $("#spendings").append(el);
+            }
+        } else {
+            errorHandling(json);
+        }
+    });
+}
+
+function errorHandling(json) {
+    if (json['error'] === 'not_logged_in') {
+        if (json['location']) {
+            window.location = json['location'];
+        } else {
+            alert("Sie sind nicht eingeloggt");
+        }
+    } else if (json['error'] === 'server') {
+        if (json['msg']) {
+            alert(json['msg']);
+        } else {
+            alert("Unbekannter Server Fehler");
+        }
+    } else {
+        alert("Unbekannter Fehler");
+    }
+}
 
 /**
  * @return XMLHttpRequest
@@ -56,81 +102,66 @@ function initRequest() {
     return xmlhttp;
 }
 
-/**
- * Beide Parameter sind optional
- * @param month Monat, für den die Ausgaben abgerufen werden sollen
- * @param year Jahr, für das die Ausgaben abgerufen werden sollen
- */
-function holeAusgaben(month, year) {
-    var date = new Date();
-    if (!month) {
-        month = date.getMonth() + 1;
-    }
-    if (!year) {
-        year = date.getFullYear();
-    }
+function holeAusgaben(callback) {
     var req = initRequest();
     var url = "getAusgaben.php";
-    var params = "month=" + month + "&year=" + year;
+    var params = "month=" + (datum.month() + 1) + "&year=" + datum.year();
     req.open("post", url, true);
     req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
     req.setRequestHeader("Content-length", params.length);
     req.setRequestHeader("Connection", "close");
     req.onreadystatechange = function() {//Call a function when the state changes.
-        if (req.readyState == 4) {
-            if (req.status == 200) {
-                //alert("geht");
+        if (req.readyState === 4) {
+            if (req.status === 200) {
                 json = JSON.parse(req.responseText);
-                //json=eval(req.responseText);
-                ausgabenAnzeigen();
-            } else if (req.status == 404) {
-
-            } else if (req.status == 500) {
-
+                if (json['error'] === undefined) {
+                    ausgabenAnzeigen();
+                    if (callback !== undefined) {
+                        callback();
+                    }
+                    $("#month").text(datum.format("MMMM YYYY"));
+                    $('#loading-screen').remove();
+                } else {
+                    errorHandling(json);
+                }
             }
         }
-    }
+    };
     req.send(params);
 }
 
+function vorherigerMonat() {
+    datum.subtract("month", 1);
+    andererMonat();
+}
+
+function naechsterMonat() {
+    datum.add("month", 1);
+    andererMonat();
+}
+
+function andererMonat(callback) {
+    loadingScreen();
+    window.history.pushState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
+    holeAusgaben(callback);
+}
+
+function loadingScreen() {
+    $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'">\uE802</span> ' + datum.format("MMMM YYYY"));
+    $(".ausgabe").remove();
+    if (!document.getElementById('loading-screen')) {
+        $('#ausgaben').append($('<div>').css({"background-color": "#ccc"}).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({"font-family": "nsvb-symbol", "font-size": "200%"}).addClass('loading').append($('<span>').addClass('animate-spin').text('\uE802')))))
+        $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
+    }
+}
+
 function ausgabenAnzeigen() {
-    var x;
-    for (x in json) {
-        var element = document.createElement("div");
-        //element.innerHTML=JSON.stringify(json[x]);
-        element.setAttribute("id", json[x].idausgabe);
-        element.setAttribute("data-id", json[x].idausgabe);
-        element.className = "tr";
-        var html = '<div class="td">';
-        html += dateToLocal(json[x].datum);
-        html += '</div>';
-        html += '<div class="td">';
-        if (json[x].kategorie) {
-            html += json[x].kategorie;
-        }
-        html += '</div>';
-        html += '<div class="td">';
-        html += json[x].art;
-        html += '</div>';
-        html += '<div class="preis td">';
-        if (json[x].preis.indexOf(".")) {
-            html += json[x].preis.replace(".", ",");
-        } else {
-            html += json[x].preis;
-        }
-        html += " &euro;";
-        html += '</div>';
-        html += '<div class="td">';
-        if (json[x].beschreibung) {
-            html += json[x].beschreibung;
-        }
-        html += '</div>';
-        html += '<div class="td">';
-        html += '<div class="remove">&times;</div>';
-        html += '</div>';
-        element.innerHTML = html;
-        element.getElementsByClassName("remove")[0].addEventListener("click", removeEntry, false);
-        document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
+    $("#spendings").text(((json['summeausgaben'].indexOf(".")) ? json['summeausgaben'].replace(".", ",") : json['summeausgaben']) + " €");
+
+    var ausgaben = json['ausgaben'];
+    for (var x in ausgaben) {
+        var element = createRow(ausgaben[x].idausgabe, dateToLocal(ausgaben[x].datum), (ausgaben[x].kategorie) ? ausgaben[x].kategorie : "", ausgaben[x].art, (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis, (ausgaben[x].beschreibung) ? ausgaben[x].beschreibung : "");
+        $("#ausgabenliste").append(element);
     }
 }
 
@@ -140,6 +171,9 @@ function removeEntry(e) {
 
     //alert(el.parentNode.parentNode.getAttribute("data-id"));
 
+    var preis = $(ausgabenElement).children(".preis").html();
+    preis = preis.split(" ")[0];
+    preis = convertPreisToPoint(preis);
 
     var req = initRequest();
     var url = "deleteAusgabe.php";
@@ -153,14 +187,15 @@ function removeEntry(e) {
     req.onreadystatechange = function() {//Call a function when the state changes.
         if (req.readyState === 4) {
             if (req.status === 200) {
-                //alert(req.responseText);
                 var json = JSON.parse(req.responseText);
-                if (json.error === undefined) {
+                if (json['error'] === undefined) {
                     if (json.deleted === 'true') {
                         document.getElementById("ausgabenliste").removeChild(ausgabenElement);
+
+                        addSpendings(-preis);
                     }
                 } else {
-                    alert(json.error);
+                    errorHandling(json);
                 }
             }
         }
@@ -168,133 +203,163 @@ function removeEntry(e) {
     req.send(params);
 }
 
-/**
- * 
- */
+function fehlerAnzeigen(error, id) {
+    if (id !== undefined && id !== null) {
+        if (error['datum'] !== undefined) {
+            $('.ausgabe[data-id=' + id + '] .td-datum').append($('<div>').addClass('error').text(error['datum'])/*.append($('<div>').addClass('error-diamond'))*/);
+        }
+        if (error['art'] !== undefined) {
+            $('.ausgabe[data-id=' + id + '] .td-art').append($('<div>').addClass('error').text(error['art']));
+        }
+        if (error['preis'] !== undefined) {
+            $('.ausgabe[data-id=' + id + '] .td-preis').append($('<div>').addClass('error').text(error['preis']));
+        }
+    } else {
+        if (error['datum'] !== undefined) {
+            $('#input .td-datum').append($('<div>').addClass('error').text(error['datum'])/*.append($('<div>').addClass('error-diamond'))*/);
+        }
+        if (error['art'] !== undefined) {
+            $('#input .td-art').append($('<div>').addClass('error').text(error['art']));
+        }
+        if (error['preis'] !== undefined) {
+            $('#input .td-preis').append($('<div>').addClass('error').text(error['preis']));
+        }
+    }
+}
+
+function fehlerLöschen(id) {
+    if (id !== undefined && id !== null) {
+        $('.ausgabe[data-id=' + id + '] .error').remove();
+    } else {
+        $('#input .error').remove();
+    }
+}
+
 function ausgabenSpeichern() {
-    var parent = document.getElementById("input");
-
-    var id = "";
-    var datumInput = parent.getChildElements()[0].getChildElements()[0];
-    var kategorieInput = parent.getChildElements()[1].getChildElements()[0];
-    var artInput = parent.getChildElements()[2].getChildElements()[0];
-    var preisInput = parent.getChildElements()[3].getChildElements()[0];
-    var beschreibungInput = parent.getChildElements()[4].getChildElements()[0];
-
-    var datum = datumInput.value;
-    var datumDB = "";
-    if (datum.indexOf(".") > 0) {
-        datumDB = localToDate(datum);
-    } else {
-        datumDB = datum;
-        datum = dateToLocal(datum);
-    }
-    var kategorie = kategorieInput.value;
-    var art = artInput.value;
-    var preis = preisInput.value;
-    var preisDB = 0;
-    if (preis.indexOf(",") > 0) {
-        preisDB = preis.replace(",", ".");
-    } else {
-        preisDB = preis;
-        if (preis.indexOf(".") > 0) {
-            preisDB = preis;
-            preis = preis.replace(".", ",");
-        }
-    }
-    var beschreibung = beschreibungInput.value;
-
-    var error = "";
+    var error = new Object();
     var showError = false;
-    if (datum == "") {
-        error += "Datum fehlt<br>";
-        showError = true;
-    }
-    if (art == "") {
-        error += "Art der Ausgabe fehlt<br>"
-        showError = true;
-    }
-    if (preis == "") {
-        error += "Preis fehlt<br>"
-        showError = true;
-    }
-    preis = preis + " &euro;";
 
-    var errorElement = document.getElementById("error");
-    if (showError) {
-        errorElement.innerHTML = error;
-        errorElement.style.display = "block";
-        //errorElement.style.setAttribute("display", "block");
+    fehlerLöschen();
+
+    var datumAusgabe = $('#input-datum').val();
+    if (datumAusgabe === undefined || datumAusgabe === "") {
+        error['datum'] = "Datum fehlt";
+        showError = true;
     } else {
-        errorElement.style = "";
-        //Irgendwas geht da schief, abe rich wei� nicht was:-(
-        //document.getElementById("error").style.removeAttribute("display");    
-
-        //nur noch abspeichern... ;-) so mittels xmlhttprequest und so zeugs
-        //vllt noch schleife um es 5 mal zu probieren?
-
-        var params = "datum=" + datumDB;
-        if (kategorie) {
-            params += "&kategorie=" + kategorie;
+        var datumDB = "";
+        if (datumAusgabe.indexOf(".") > 0) {
+            datumDB = localToDate(datumAusgabe);
+        } else {
+            datumDB = datumAusgabe;
+            datumAusgabe = dateToLocal(datumAusgabe);
         }
-        params += "&art=" + encodeURIComponent(art);
-        params += "&preis=" + preisDB;
-        if (beschreibung) {
-            params += "&beschreibung=" + beschreibung;
-        }
-        params = encodeURI(params);
+    }
 
-        var req = initRequest();
-        var url = "saveAusgabe.php";
-        req.open("POST", url, true);
-        //Send the proper header information along with the request
-        req.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
-        req.setRequestHeader("Content-length", params.length);
-        req.setRequestHeader("Connection", "close");
+    var kategorie = $('#input-kategorie').val();
 
-        req.onreadystatechange = function() {//Call a function when the state changes.
-            if (req.readyState == 4) {
-                if (req.status == 200) {
-                    //alert(req.responseText);
-                    id = req.responseText;
+    var art = $('#input-art').val();
+    if (art === undefined || art === "") {
+        error['art'] = "Art der Ausgabe fehlt";
+        showError = true;
+    }
 
-                    //id aus antwort des queries
-                    var element = document.createElement("div");
-                    element.setAttribute("id", id);
-                    element.setAttribute("data-id", id);
-                    element.className = "tr new";
-                    var html = '<div class="td">';
-                    html += datum;
-                    html += '</div>';
-                    html += '<div class="td">';
-                    html += kategorie;
-                    html += '</div>';
-                    html += '<div class="td">';
-                    html += art;
-                    html += '</div>';
-                    html += '<div class="preis td">';
-                    html += preis;
-                    html += '</div>';
-                    html += '<div class="td">';
-                    html += beschreibung;
-                    html += '</div>';
-                    html += '<div class="td">';
-                    html += '<div class="remove">&times;</div>';
-                    html += '</div>';
-                    element.innerHTML = html;
-                    element.getElementsByClassName("remove")[0].addEventListener("click", removeEntry, false);
-                    document.getElementById("ausgabenliste").insertBefore(element, document.getElementById("ausgabenliste").childNodes[document.getElementById("ausgabenliste").childNodes.length - 2]);
-
-                    datumInput.value = "";
-                    kategorieInput.value = "";
-                    artInput.value = "";
-                    preisInput.value = "";
-                    beschreibungInput.value = "";
-                }
+    var preis = $('#input-preis').val();
+    if (preis === undefined || preis === "") {
+        error['preis'] = "Preis fehlt";
+        showError = true;
+    } else {
+        var preisDB = 0;
+        preis = convertPreisToComma(preis);
+        if (preis.indexOf(",") > 0) {
+            preisDB = preis.replace(",", ".");
+        } else {
+            preisDB = preis;
+            if (preis.indexOf(".") > 0) {
+                preisDB = preis;
             }
         }
-        req.send(params);
     }
+
+    var beschreibung = $('#input-beschreibung').val();
+
+    if (showError) {
+        fehlerAnzeigen(error);
+    } else {
+        ausgabe.datumDB = datumDB;
+        ausgabe.datumAusgabe = datumAusgabe;
+        ausgabe.kategorie = kategorie;
+        ausgabe.art = art;
+        ausgabe.preisDB = preisDB;
+        ausgabe.preis = preis;
+        ausgabe.beschreibung = beschreibung;
+
+        //Falls neue Ausgabe nicht im aktuell gewählten Monat ist wird der dazugehörige Monat geladen
+        var datumM;
+        if (datumDB.split("-")[0].length < 4) {
+            datumM = moment(datumDB, "YY-M-D");
+        }
+        else {
+            datumM = moment(datumDB, "YYYY-M-D");
+        }
+
+        if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
+            datum.month(datumM.month());
+            datum.year(datumM.year());
+            andererMonat(ausgabenSpeichernRequest);
+        } else {
+            ausgabenSpeichernRequest();
+        }
+
+
+    }
+}
+
+function ausgabenSpeichernRequest() {
+    var params = new Object();
+    params.datum = ausgabe.datumDB;
+    if (ausgabe.kategorie) {
+        params.kategorie = encodeURIComponent(ausgabe.kategorie);
+    }
+    params.art = encodeURIComponent(ausgabe.art);
+    params.preis = ausgabe.preisDB;
+    if (ausgabe.beschreibung) {
+        params.beschreibung = encodeURIComponent(ausgabe.beschreibung);
+    }
+
+    $.ajax("saveAusgabe.php", {
+        type: 'POST',
+        data: params
+    }).done(function(result) {
+        var json = JSON.parse(result);
+        if (json['error'] === undefined) {
+            var element = createRow(json['id'], ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
+            element.className += " new";
+            //TODO: insert new Ausgabe at the appropriate position
+            document.getElementById("ausgabenliste").appendChild(element);
+            $('.ausgabe[data-id=' + json['id'] + ']')[0].scrollIntoView();
+            
+            addSpendings(ausgabe.preisDB);
+
+            clearInput();
+
+            ausgabe = new Object();
+        } else {
+            errorHandling(json);
+        }
+    }).fail(function(msg) {
+        alert("Speichern der Ausgabe fehlgeschlagen: " + msg);
+    });
+}
+
+function clearInput() {
+    $('#input-datum, #input-kategorie, #input-art, #input-preis, #input-beschreibung').val("");
+}
+
+/**
+ * @param float preis Preis der hinzugefügt werden soll, negative Werte zum abziehen
+ */
+function addSpendings(preis) {
+    $('#spendings').html(convertPreisToComma((convertPreisToPoint($('#spendings').html().split(' ')[0]) + parseFloat(preis)).toFixed(2)) + " €");
 }
 
 /**
@@ -314,3 +379,263 @@ function localToDate(date) {
     var a = date.split(".");
     return a[2] + "-" + a[1] + "-" + a[0];
 }
+
+function createRow(id, datum, kategorie, art, preis, beschreibung) {
+    var element = document.createElement("div");
+    element.setAttribute("data-id", id);
+    element.className = "tr ausgabe";
+    var html = '<div class="td td-datum">';
+    html += datum;
+    html += '</div>';
+    html += '<div class="td td-kategorie">';
+    html += kategorie;
+    html += '</div>';
+    html += '<div class="td td-art">';
+    html += art;
+    html += '</div>';
+    html += '<div class="preis td td-preis">';
+    html += preis + ' &euro;';
+    html += '</div>';
+    html += '<div class="td td-beschreibung">';
+    html += beschreibung;
+    html += '</div>';
+    html += '<div class="td td-optionen">';
+    html += '<div class="edit icon-pencil"></div>';
+    html += '<div class="remove icon-trash"></div>';
+    html += '</div>';
+    element.innerHTML = html;
+    element.getElementsByClassName("remove")[0].addEventListener("click", removeEntry, false);
+    element.getElementsByClassName("edit")[0].addEventListener("click", editEntry, false);
+    return element;
+}
+
+function editEntry(e) {
+    var el = e.target;
+    var ausgabenElement = el.parentNode.parentNode;
+
+    for (var i = 0; i < el.parentNode.childNodes.length; i++) {
+        el.parentNode.childNodes[i].style.display = "none";
+    }
+
+    var update = document.createElement("div");
+    update.addEventListener("click", updateEntry, "false");
+    update.className = "update icon-ok";
+
+    var cancel = document.createElement("div");
+    cancel.addEventListener("click", cancelEditEntry, "false");
+    cancel.className = "cancel icon-cancel";
+
+    el.parentNode.appendChild(update);
+    el.parentNode.appendChild(cancel);
+
+    for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
+        if (ausgabenElement.childNodes[i].className.contains("td")) {
+            if (ausgabenElement.childNodes[i].classList.contains('preis')) {
+                //Preis von €-Zeichen trennen
+                var preis = ausgabenElement.childNodes[i].innerHTML.split(' ')[0];
+                preis = convertPreisToPoint(preis);
+                ausgabenElement.childNodes[i].setAttribute('data-input', preis);
+                ausgabenElement.childNodes[i].innerHTML = '<input size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01" value="' + preis + '"><span>&euro;</span>';
+            } else {
+                var input = ausgabenElement.childNodes[i].innerHTML;
+                ausgabenElement.childNodes[i].setAttribute('data-input', input);
+                ausgabenElement.childNodes[i].innerHTML = '<input type="text" value="' + input + '">';
+            }
+        }
+    }
+}
+
+function cancelEditEntry(e) {
+    var el = e.target;
+    var parent = el.parentNode;
+    parent.removeChild(parent.getElementsByClassName("update")[0]);
+    parent.removeChild(parent.getElementsByClassName("cancel")[0]);
+
+    for (var i = 0; i < parent.childNodes.length; i++) {
+        parent.childNodes[i].style.display = "";
+    }
+
+    var ausgabenElement = parent.parentNode;
+    for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
+        if (ausgabenElement.childNodes[i].className.contains("td")) {
+            var text = ausgabenElement.childNodes[i].getAttribute('data-input');
+            $(ausgabenElement.childNodes[i]).children('input').remove();
+            if (ausgabenElement.childNodes[i].classList.contains('preis')) {
+                $(ausgabenElement.childNodes[i]).children('span').remove();
+                $(ausgabenElement.childNodes[i]).html(convertPreisToComma(text) + ' €');
+            } else {
+                $(ausgabenElement.childNodes[i]).html(text);
+            }
+        }
+    }
+}
+
+function updateEntry(e) {
+    var error = new Object();
+    var showError = false;
+
+    var el = e.target;
+    var parent = el.parentNode;
+    parent.removeChild(parent.getElementsByClassName("update")[0]);
+    parent.removeChild(parent.getElementsByClassName("cancel")[0]);
+
+    $(parent).append($('<div/>').addClass('change animate-spin icon-spin5'));
+
+    var ausgabenElement = parent.parentNode;
+    var idausgabe = $(ausgabenElement).attr('data-id');
+    fehlerLöschen(idausgabe);
+
+    var params = new Object();
+
+    if ($(ausgabenElement).children('.td-datum').attr('data-input') !== $(ausgabenElement).children('.td-datum').children('input').val()) {
+        var datumAusgabe = $(ausgabenElement).children('.td-datum').children('input').val();
+        if (datumAusgabe === undefined || datumAusgabe === "") {
+            error['datum'] = "Datum fehlt";
+            showError = true;
+        } else {
+            var datumDB = "";
+            if (datumAusgabe.indexOf(".") > 0) {
+                datumDB = localToDate(datumAusgabe);
+            } else {
+                datumDB = datumAusgabe;
+                datumAusgabe = dateToLocal(datumAusgabe);
+            }
+            params.datum = datumDB;
+        }
+    }
+
+    if ($(ausgabenElement).children('.td-kategorie').attr('data-input') !== $(ausgabenElement).children('.td-kategorie').children('input').val()) {
+        params.kategorie = encodeURIComponent($(ausgabenElement).children('.td-kategorie').children('input').val());
+    }
+
+    if ($(ausgabenElement).children('.td-art').attr('data-input') !== $(ausgabenElement).children('.td-art').children('input').val()) {
+        var art = $(ausgabenElement).children('.td-art').children('input').val();
+        if (art === undefined || art === "") {
+            error['art'] = "Art der Ausgabe fehlt";
+            showError = true;
+        } else {
+            params.art = encodeURIComponent(art);
+        }
+    }
+
+    if ($(ausgabenElement).children('.td-preis').attr('data-input') !== $(ausgabenElement).children('.td-preis').children('input').val()) {
+        var preis = $(ausgabenElement).children('.td-preis').children('input').val();
+        if (preis === undefined || preis === "") {
+            error['preis'] = "Preis fehlt";
+            showError = true;
+        } else {
+            var preisDB = 0;
+            if (preis.indexOf(",") > 0) {
+                preisDB = preis.replace(",", ".");
+            } else {
+                preisDB = preis;
+            }
+            params.preis = preisDB;
+        }
+
+    }
+
+    if ($(ausgabenElement).children('.td-beschreibung').attr('data-input') !== $(ausgabenElement).children('.td-beschreibung').children('input').val()) {
+        params.beschreibung = encodeURIComponent($(ausgabenElement).children('.td-beschreibung').children('input').val());
+    }
+
+    params.idausgabe = idausgabe;
+
+    if (showError) {
+        fehlerAnzeigen(error, idausgabe);
+        readdEditControls(ausgabenElement);
+    } else {
+        $.ajax("editAusgabe.php", {
+            type: 'POST',
+            data: params
+        }).done(function(result) {
+            var json = JSON.parse(result);
+            if (json['error'] === undefined) {
+                var sameMonth = true;
+                if (params.datum !== undefined) {
+                    var datumM;
+                    if (params.datum.split("-")[0].length < 4) {
+                        datumM = moment(params.datum, "YY-M-D");
+                    }
+                    else {
+                        datumM = moment(params.datum, "YYYY-M-D");
+                    }
+
+                    if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
+                        datum.month(datumM.month());
+                        datum.year(datumM.year());
+                        andererMonat();
+                        //andererMonat(/*geänderte Ausgabe markieren*/);
+                        sameMonth = false;
+                    }
+                }
+
+                if (sameMonth) {
+                    for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
+                        if (ausgabenElement.childNodes[i].className.contains("td")) {
+                            var text = $(ausgabenElement.childNodes[i]).children('input').val();
+                            $(ausgabenElement.childNodes[i]).children('input').remove();
+                            if (ausgabenElement.childNodes[i].classList.contains('preis')) {
+                                $(ausgabenElement.childNodes[i]).children('span').remove();
+                                $(ausgabenElement.childNodes[i]).html(convertPreisToComma(text) + ' €');
+                            } else {
+                                $(ausgabenElement.childNodes[i]).html(text);
+                            }
+                        }
+                    }
+
+                    if (params.preis) {
+                        var preisAlt = convertPreisToPoint($(ausgabenElement).children('.td-preis').attr('data-input'));
+                        var preisNeu = convertPreisToPoint(params.preis);
+                        var change = -preisAlt + preisNeu;
+                        addSpendings(parseFloat(change));
+                    }
+
+                    $(ausgabenElement).children('.td-optionen').children('.change').remove();
+
+                    $(ausgabenElement).children('.td-optionen').children().css('display', '');
+                }
+            } else {
+                readdEditControls(ausgabenElement);
+                errorHandling(json);
+            }
+        }).fail(function(msg) {
+            readdEditControls(ausgabenElement);
+            alert("Ändern der Ausgabe fehlgeschlagen: " + msg);
+        });
+    }
+}
+
+function readdEditControls(ausgabenElement) {
+    $(ausgabenElement).children('.td-optionen').children('.change').remove();
+
+    var update = document.createElement("div");
+    update.addEventListener("click", updateEntry, "false");
+    update.className = "update icon-ok";
+
+    var cancel = document.createElement("div");
+    cancel.addEventListener("click", cancelEditEntry, "false");
+    cancel.className = "cancel icon-cancel";
+
+    $(ausgabenElement).children('.td-optionen').append(update, cancel);
+}
+
+function convertPreisToPoint(preis) {
+    preis += '';
+    preis = preis.replace(",", ".");
+    return parseFloat(preis);
+}
+
+function convertPreisToComma(preis) {
+    preis += "";
+    preis = preis.replace(".", ",");
+    if (preis.split(",").length > 1) {
+        if (preis.split(",")[1].length === 1) {
+            preis += '0';
+        }
+    } else {
+        preis += ',00';
+    }
+    return preis;
+}
+

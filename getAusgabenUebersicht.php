@@ -7,7 +7,6 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-
     $link = mysql_connect(':/var/run/mysqld/mysqld.sock', 'eua');
 
     if (!$link) {
@@ -16,28 +15,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         die('{"error":"server","msg":"Datenbankfehler: ' . mysql_error() . '"}');
     }
 
-    if (!isset($_POST["idausgabe"])) {
-        die('{"error":"server","msg":"Ausgaben ID fehlt"}');
-    }
-    $idausgabe = $_POST["idausgabe"];
-
     mysql_set_charset('utf8');
-    $result = mysql_query(sprintf('CALL eua.ausgabeLöschen(%s);', $idausgabe));
 
-    $json = array();
+    $result = mysql_query('CALL eua.summeAusgabenMonate();');
 
-    $json["idausgabe"] = $idausgabe;
-
-    if ($result == true) {
-        $json["deleted"] = "true";
+    if (!$result) {
+        die('{"error":"server","msg":"Keine Ergebnisse"}');
     } else {
-        $json["deleted"] = "false";
+        $rows = array();
+        while ($array = mysql_fetch_assoc($result)) {
+            $rows[] = $array;
+        }
+        $ausgaben = json_encode($rows);
+        $json = '{"ausgaben":' . $ausgaben . '}';
+        echo $json;
     }
-
-    echo json_encode($json);
-
-    //echo mysql_error();
-    mysql_close($link);
 } else {
     $json = array();
 
