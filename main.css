@@ -263,6 +263,7 @@ content{
     overflow-x: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    position: relative;
 }
 .td textarea{
     height: 1.2em;

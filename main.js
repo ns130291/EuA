@@ -203,20 +203,36 @@ function removeEntry(e) {
     req.send(params);
 }
 
-function fehlerAnzeigen(error) {
-    if (error['datum'] !== undefined) {
-        $('#input .td-datum').append($('<div>').addClass('error').text(error['datum'])/*.append($('<div>').addClass('error-diamond'))*/);
-    }
-    if (error['art'] !== undefined) {
-        $('#input .td-art').append($('<div>').addClass('error').text(error['art']));
-    }
-    if (error['preis'] !== undefined) {
-        $('#input .td-preis').append($('<div>').addClass('error').text(error['preis']));
+function fehlerAnzeigen(error, id) {
+    if (id !== undefined && id !== null) {
+        if (error['datum'] !== undefined) {
+            $('.ausgabe[data-id=' + id + '] .td-datum').append($('<div>').addClass('error').text(error['datum'])/*.append($('<div>').addClass('error-diamond'))*/);
+        }
+        if (error['art'] !== undefined) {
+            $('.ausgabe[data-id=' + id + '] .td-art').append($('<div>').addClass('error').text(error['art']));
+        }
+        if (error['preis'] !== undefined) {
+            $('.ausgabe[data-id=' + id + '] .td-preis').append($('<div>').addClass('error').text(error['preis']));
+        }
+    } else {
+        if (error['datum'] !== undefined) {
+            $('#input .td-datum').append($('<div>').addClass('error').text(error['datum'])/*.append($('<div>').addClass('error-diamond'))*/);
+        }
+        if (error['art'] !== undefined) {
+            $('#input .td-art').append($('<div>').addClass('error').text(error['art']));
+        }
+        if (error['preis'] !== undefined) {
+            $('#input .td-preis').append($('<div>').addClass('error').text(error['preis']));
+        }
     }
 }
 
-function fehlerLöschen() {
-    $('#input .error').remove();
+function fehlerLöschen(id) {
+    if (id !== undefined && id !== null) {
+        $('.ausgabe[data-id=' + id + '] .error').remove();
+    } else {
+        $('#input .error').remove();
+    }
 }
 
 function ausgabenSpeichern() {
@@ -289,7 +305,6 @@ function ausgabenSpeichern() {
         if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
             datum.month(datumM.month());
             datum.year(datumM.year());
-            console.log("Anderer Monat wird geladen");
             andererMonat(ausgabenSpeichernRequest);
         } else {
             ausgabenSpeichernRequest();
@@ -321,7 +336,8 @@ function ausgabenSpeichernRequest() {
             element.className += " new";
             //TODO: insert new Ausgabe at the appropriate position
             document.getElementById("ausgabenliste").appendChild(element);
-
+            $('.ausgabe[data-id=' + json['id'] + ']')[0].scrollIntoView();
+            
             addSpendings(ausgabe.preisDB);
 
             clearInput();
@@ -458,9 +474,6 @@ function updateEntry(e) {
     var error = new Object();
     var showError = false;
 
-    fehlerLöschen();//TODO: Anpassen
-
-
     var el = e.target;
     var parent = el.parentNode;
     parent.removeChild(parent.getElementsByClassName("update")[0]);
@@ -469,6 +482,8 @@ function updateEntry(e) {
     $(parent).append($('<div/>').addClass('change animate-spin icon-spin5'));
 
     var ausgabenElement = parent.parentNode;
+    var idausgabe = $(ausgabenElement).attr('data-id');
+    fehlerLöschen(idausgabe);
 
     var params = new Object();
 
@@ -524,10 +539,11 @@ function updateEntry(e) {
         params.beschreibung = encodeURIComponent($(ausgabenElement).children('.td-beschreibung').children('input').val());
     }
 
-    params.idausgabe = $(ausgabenElement).attr('data-id');
+    params.idausgabe = idausgabe;
 
     if (showError) {
-        //TODO: Fehler anzeigen, spinner entfernen, Schaltflächen wieder hinzufügen
+        fehlerAnzeigen(error, idausgabe);
+        readdEditControls(ausgabenElement);
     } else {
         $.ajax("editAusgabe.php", {
             type: 'POST',
@@ -535,21 +551,26 @@ function updateEntry(e) {
         }).done(function(result) {
             var json = JSON.parse(result);
             if (json['error'] === undefined) {
-                var datumM;
-                if (params.datum.split("-")[0].length < 4) {
-                    datumM = moment(params.datum, "YY-M-D");
-                }
-                else {
-                    datumM = moment(params.datum, "YYYY-M-D");
+                var sameMonth = true;
+                if (params.datum !== undefined) {
+                    var datumM;
+                    if (params.datum.split("-")[0].length < 4) {
+                        datumM = moment(params.datum, "YY-M-D");
+                    }
+                    else {
+                        datumM = moment(params.datum, "YYYY-M-D");
+                    }
+
+                    if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
+                        datum.month(datumM.month());
+                        datum.year(datumM.year());
+                        andererMonat();
+                        //andererMonat(/*geänderte Ausgabe markieren*/);
+                        sameMonth = false;
+                    }
                 }
 
-                if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
-                    datum.month(datumM.month());
-                    datum.year(datumM.year());
-                    console.log("Anderer Monat wird geladen");
-                    andererMonat();
-                    //andererMonat(/*geänderte Ausgabe markeiren*/);
-                } else {
+                if (sameMonth) {
                     for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
                         if (ausgabenElement.childNodes[i].className.contains("td")) {
                             var text = $(ausgabenElement.childNodes[i]).children('input').val();
@@ -575,39 +596,28 @@ function updateEntry(e) {
                     $(ausgabenElement).children('.td-optionen').children().css('display', '');
                 }
             } else {
-                $(ausgabenElement).children('.td-optionen').children('.change').remove();
-
-                var update = document.createElement("div");
-                update.addEventListener("click", updateEntry, "false");
-                update.className = "update icon-ok";
-
-                var cancel = document.createElement("div");
-                cancel.addEventListener("click", cancelEditEntry, "false");
-                cancel.className = "cancel icon-cancel";
-
-                $(ausgabenElement).children('.td-optionen').append(update, cancel);
-
+                readdEditControls(ausgabenElement);
                 errorHandling(json);
             }
         }).fail(function(msg) {
-            $(ausgabenElement).children('.td-optionen').children('.change').remove();
-
-            var update = document.createElement("div");
-            update.addEventListener("click", updateEntry, "false");
-            update.className = "update icon-ok";
-
-            var cancel = document.createElement("div");
-            cancel.addEventListener("click", cancelEditEntry, "false");
-            cancel.className = "cancel icon-cancel";
-
-            $(ausgabenElement).children('.td-optionen').append(update, cancel);
-
+            readdEditControls(ausgabenElement);
             alert("Ändern der Ausgabe fehlgeschlagen: " + msg);
         });
     }
-    //TODO abspeichern
-    //Gesamtausgaben aktualisieren
-    //Bearbeiten & löschen wieder anzeigen
+}
+
+function readdEditControls(ausgabenElement) {
+    $(ausgabenElement).children('.td-optionen').children('.change').remove();
+
+    var update = document.createElement("div");
+    update.addEventListener("click", updateEntry, "false");
+    update.className = "update icon-ok";
+
+    var cancel = document.createElement("div");
+    cancel.addEventListener("click", cancelEditEntry, "false");
+    cancel.className = "cancel icon-cancel";
+
+    $(ausgabenElement).children('.td-optionen').append(update, cancel);
 }
 
 function convertPreisToPoint(preis) {
