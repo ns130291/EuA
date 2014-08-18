@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
     $hostname = $_SERVER['HTTP_HOST'];
@@ -15,7 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     mysql_set_charset('utf8');
 
-    $result = mysql_query('CALL eua.summeAusgabenMonate();');
+    if (!isset($_POST["jahr"]) || !isset($_POST["monat"])) {
+        die('{"error":"server","msg":"Jahr/Monat fehlt"}');
+    }
+    $jahr = $_POST["jahr"];
+    $monat = $_POST["monat"];
+
+    $result = mysql_query(sprintf('CALL eua.monatsuebersicht(%s, %s);', $monat, $jahr));
 
     if (!$result) {
         die('{"error":"server","msg":"Keine Ergebnisse"}');

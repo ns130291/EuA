@@ -4,12 +4,14 @@ var json = null;
 moment.lang("de");
 var datum = moment();
 var ausgabe = new Object();
+var chart = null;
 
 $(document).ready(function() {
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
-    $("#spendings").click(uebersichtMonate);
+    $("#spendings").click(overlay);
     $("#plusbutton").click(ausgabenSpeichern);
+    $("#overlay-close").click(ausgaben);
     $(window).resize(resize);
     $(window).on('popstate', back);
     resize();
@@ -25,6 +27,196 @@ function back(e) {
     }
     loadingScreen();
     holeAusgaben();
+}
+
+function ausgaben() {
+    $('#content').css('display', 'block');
+    $('#overlay').css('display', 'none');
+}
+
+function overlay() {
+    $('#content').css('display', 'none');
+    $('#overlay').css('display', 'block');
+    overlayMonate();
+}
+
+function overlayMonate() {
+    $.post('getAusgabenUebersicht.php', function(data) {
+        var json = JSON.parse(data);
+        if (json['error'] === undefined) {
+            if (json.ausgaben) {
+                $('#select').children().remove();
+                $('#select-mobile > select').children().remove();
+                var ausgaben = json.ausgaben;
+                var currentYear = 0;
+                for (var x in ausgaben) {
+                    var tempDate = moment([ausgaben[x].jahr, ausgaben[x].monat - 1]);
+                    if (currentYear === 0 || currentYear > tempDate.year()) {
+                        currentYear = tempDate.year();
+                        overlayAddSelect(currentYear, currentYear);
+                    }
+                    overlayAddSelect(tempDate.format('MMMM'), currentYear, ausgaben[x].preis.split('.')[0] + ' €', tempDate.month() + 1);
+                }
+                $('#select .select-element').first().addClass('active');
+                $('#select-mobile > select > optgroup').first().children('option').first().attr('selected', 'selected');
+                //TODO: load chart from selected category
+                yearChart(2014);
+            }
+        } else {
+            errorHandling(json);
+        }
+    });
+}
+
+function overlayAddSelect(label, year, spendings, month) {
+    if (spendings === undefined) {
+        $('#select').append($('<div>').addClass('select-element year').html(label).attr('data-year', year).click(function(e) {
+            $('#select').children().removeClass('active');
+            $(e.target).addClass('active');
+            yearChart($(e.target).attr('data-year'));
+        }));
+        $('#select-mobile > select').append($('<optgroup>').attr('label', label));
+        $('#select-mobile > select > optgroup[label="' + label + '"]').append($('<option>').html('Übersicht ' + label).attr('data-year', year));
+    } else {
+        $('#select').append($('<div>').addClass('select-element').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-month', month).attr('data-year', year).click(function(e) {
+            $('#select').children().removeClass('active');
+            $(e.target).addClass('active');
+            monthChart($(e.target).attr('data-month'), $(e.target).attr('data-year'));
+        }));
+        $('#select-mobile > select > optgroup[label="' + year + '"]').append($('<option>').html(label + ' - ' + spendings).attr('data-month', month).attr('data-year', year));
+    }
+}
+
+function monthChart(month, year) {
+    $('#stats > .chart').empty();
+    $.post('getMonatsUebersicht.php', {monat: month, jahr: year}).done(function(data) {
+        var json = JSON.parse(data);
+        if (json['error'] === undefined) {
+            if (json.ausgaben) {
+                var ausgaben = json.ausgaben;
+                var i = -1;
+
+                var data = [];
+
+                for (var x in ausgaben) {
+                    data[x] = [];
+                    if (ausgaben[x].kategorie === null) {
+                        data[x][0] = 'Ohne Kategorie';
+                    } else {
+                        data[x][0] = ausgaben[x].kategorie;
+                    }
+                    data[x][1] = parseFloat(ausgaben[x].preis);
+                }
+
+                var series = [{
+                        type: 'pie',
+                        name: 'Summe',
+                        data: data
+                    }];
+
+                chart = new Highcharts.Chart({
+                    chart: {
+                        renderTo: $('#stats > .chart')[0],
+                        type: 'pie'
+                    },
+                    title: {
+                        text: moment([year, month - 1]).format('MMMM YYYY')
+                    },
+                    tooltip: {
+                        pointFormat: '{series.name}: <b>{point.y:.2f} €</b>'
+                    },
+                    plotOptions: {
+                        pie: {
+                            allowPointSelect: true,
+                            cursor: 'pointer',
+                            dataLabels: {
+                                enabled: true,
+                                format: '<b>{point.name}</b>:<br>{point.percentage:.1f} %',
+                                style: {
+                                    color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                                }
+                            }
+                        }
+                    },
+                    series: series,
+                    credits: false
+                });
+            }
+        } else {
+            errorHandling(json);
+        }
+    });
+}
+
+function yearChart(year) {
+    $('#stats > .chart').empty();
+    $.post('getJahresUebersicht.php', {jahr: year}).done(function(data) {
+        var json = JSON.parse(data);
+        if (json['error'] === undefined) {
+            if (json.ausgaben) {
+                var ausgaben = json.ausgaben;
+                var kategorie = undefined;
+                var i = -1;
+                var series = [];
+                for (var x in ausgaben) {
+                    if (kategorie !== ausgaben[x].kategorie) {
+                        kategorie = ausgaben[x].kategorie;
+                        i++;
+                        if (kategorie === null) {
+                            series[i] = {name: 'Ohne Kategorie', data: []};
+                        } else {
+                            series[i] = {name: kategorie, data: []};
+                        }
+                    }
+                    series[i].data[ausgaben[x].monat - 1] = parseFloat(ausgaben[x].preis);
+                }
+
+                for (var x in series) {
+                    for (i = 0; i < 12; i++) {
+                        if (series[x].data[i] === undefined || series[x].data[i] === null) {
+                            series[x].data[i] = 0;
+                        }
+                    }
+                }
+
+                chart = new Highcharts.Chart({
+                    chart: {
+                        renderTo: $('#stats > .chart')[0],
+                        type: 'column'
+                    },
+                    title: {
+                        text: year
+                    },
+                    xAxis: {
+                        categories: "Jan._Febr._Mrz._Apr._Mai_Jun._Jul._Aug._Sept._Okt._Nov._Dez.".split("_")
+                    },
+                    yAxis: {
+                        title: {
+                            text: ''
+                        }
+                    },
+                    tooltip: {
+                        formatter: function() {
+                            return this.x + '<br/>' +
+                                    '<span style="color:' + this.series.color + '"> \u25CF </span>' + this.series.name + ': <b>' + convertPreisToComma(this.point.y) + ' €</b><br/>' +
+                                    'Summe: ' + convertPreisToComma(this.point.stackTotal) + ' €';
+                        }
+                    },
+                    plotOptions: {
+                        column: {
+                            stacking: 'normal'
+                        }
+                    },
+                    series: series,
+                    credits: false
+                });
+            }
+        } else {
+            errorHandling(json);
+        }
+    });
+
+
 }
 
 function ausgabenLaden() {
@@ -45,6 +237,9 @@ function ausgabenLaden() {
 function resize() {
     $('#ausgaben').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height());
     $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
+    /*if(chart !== null){
+     //chart.redraw();
+     }*/
 }
 
 function uebersichtMonate() {
@@ -337,7 +532,7 @@ function ausgabenSpeichernRequest() {
             //TODO: insert new Ausgabe at the appropriate position
             document.getElementById("ausgabenliste").appendChild(element);
             $('.ausgabe[data-id=' + json['id'] + ']')[0].scrollIntoView();
-            
+
             addSpendings(ausgabe.preisDB);
 
             clearInput();

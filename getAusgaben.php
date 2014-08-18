@@ -20,12 +20,9 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    //$link = mysql_connect('localhost:3306', 'root');
     $link = mysql_connect(':/var/run/mysqld/mysqld.sock', 'eua');
 
     if (!$link) {
-        //500
-        //header("HTTP/1.1 500 Internal Server Error");
         die('{"error":"server","msg":"Datenbankfehler: ' . mysql_error() . '"}');
     }
     /* $month = date("n");
@@ -35,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     mysql_set_charset('utf8');
     $result = mysql_query(sprintf('CALL eua.holeAusgabenMonat("%s","%s");', $startDate, $endDate));
-    //echo sprintf('CALL eua.holeAusgabenMonat("%s","%s");', $startDate, $endDate);
+    
     if (!$result) {
         die('{"error":"server","msg":"Keine Ergebnisse"}');
     } else {
@@ -50,8 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         mysql_close($link);
         $link = mysql_connect(':/var/run/mysqld/mysqld.sock', 'eua');
         if (!$link) {
-            //500
-            //header("HTTP/1.1 500 Internal Server Error");
             die('{"error":"server","msg":"Datenbankfehler: ' . mysql_error() . '"}');
         }
         mysql_set_charset('utf8');

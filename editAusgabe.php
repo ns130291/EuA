@@ -45,9 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $sql .= ' WHERE idausgabe = ' . mysql_real_escape_string($_POST["idausgabe"]) . ';';
 
         $result = mysql_query($sql);
-        /*echo $result;
-        echo mysql_error();
-        echo $sql;*/
+        
         if ($result) {
             $json["changed"] = "true";
         } else {

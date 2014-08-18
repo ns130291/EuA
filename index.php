@@ -23,6 +23,8 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
         <script type="text/javascript" src="js/de.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
         <script type="text/javascript" src="main.js"></script>
+        <script type="text/javascript" src="js/dummyPic.js"></script>
+        <script type="text/javascript" src="js/highcharts-custom.js"></script>
     </head>
     <body>
         <div id="content">
@@ -85,6 +87,25 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                     </div>
                 </footer>
             </section>
+        </div>
+        <div id="overlay">
+            <div class="cf">
+                <div class="right" id="overlay-close">&times;</div>
+                <div id="select-mobile"></div>
+            </div>
+            <div id="overlay-content">
+                <div id="select" class="left"></div>
+                <div id="stats-wrapper" class="cf">
+                    <div>
+                        <div id="details">
+                            Details &#8594;
+                        </div>
+                    </div>
+                    <div id="stats">
+                        <div class="chart"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </body>
 </html>

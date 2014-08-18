@@ -11,8 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $link = mysql_connect(':/var/run/mysqld/mysqld.sock', 'eua');
 
     if (!$link) {
-        //500
-        //header("HTTP/1.1 500 Internal Server Error");
         die('{"error":"server","msg":"Datenbankfehler: ' . mysql_error() . '"}');
     }
 
@@ -36,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     echo json_encode($json);
 
-    //echo mysql_error();
     mysql_close($link);
 } else {
     $json = array();
