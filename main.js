@@ -3,7 +3,7 @@
 var json = null;
 moment.lang("de");
 var datum = moment();
-var ausgabe = new Object();
+var ausgabe = {};
 var chart = null;
 
 $(document).ready(function() {
@@ -37,11 +37,11 @@ function ausgaben() {
 function overlay() {
     $('#content').css('display', 'none');
     $('#overlay').css('display', 'block');
-    overlayMonate();
+    overlayCharts();
 }
 
-function overlayMonate() {
-    $.post('getAusgabenUebersicht.php', function(data) {
+function overlayCharts() {
+    $.post('api.php', {action: 'get_sum_months'}).done(function(data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -89,7 +89,7 @@ function overlayAddSelect(label, year, spendings, month) {
 
 function monthChart(month, year) {
     $('#stats > .chart').empty();
-    $.post('getMonatsUebersicht.php', {monat: month, jahr: year}).done(function(data) {
+    $.post('api.php', {action: 'get_overview_month', monat: month, jahr: year}).done(function(data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -150,7 +150,7 @@ function monthChart(month, year) {
 
 function yearChart(year) {
     $('#stats > .chart').empty();
-    $.post('getJahresUebersicht.php', {jahr: year}).done(function(data) {
+    $.post('api.php', {action: 'get_overview_year', jahr: year}).done(function(data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -242,29 +242,6 @@ function resize() {
      }*/
 }
 
-function uebersichtMonate() {
-    $.post('getAusgabenUebersicht.php', function(data) {
-        var json = JSON.parse(data);
-        if (json['error'] === undefined) {
-            if (json.ausgaben) {
-                var el = $("<div>").attr("id", "month-overview").click(function() {
-                    $(this).remove();
-                    return false;
-                });
-                var ausgaben = json.ausgaben;
-                for (var x in ausgaben) {
-                    var tempDate = moment([ausgaben[x].jahr, ausgaben[x].monat - 1]);
-                    var preis = (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis;
-                    $("<div>").html(tempDate.format("MMM YYYY") + ' ' + preis + ' €<br>').appendTo(el);
-                }
-                $("#spendings").append(el);
-            }
-        } else {
-            errorHandling(json);
-        }
-    });
-}
-
 function errorHandling(json) {
     if (json['error'] === 'not_logged_in') {
         if (json['location']) {
@@ -278,51 +255,31 @@ function errorHandling(json) {
         } else {
             alert("Unbekannter Server Fehler");
         }
+    } else if (json['error'] === 'action_missing') {
+        if (json['msg']) {
+            alert(json['msg']);
+        } else {
+            alert("Unbekannter Server Fehler");
+        }
     } else {
         alert("Unbekannter Fehler");
     }
 }
 
-/**
- * @return XMLHttpRequest
- */
-function initRequest() {
-    var xmlhttp;
-    if (window.XMLHttpRequest) {
-        xmlhttp = new XMLHttpRequest();
-    }
-    else {//IE 5/6
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    return xmlhttp;
-}
-
 function holeAusgaben(callback) {
-    var req = initRequest();
-    var url = "getAusgaben.php";
-    var params = "month=" + (datum.month() + 1) + "&year=" + datum.year();
-    req.open("post", url, true);
-    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    req.setRequestHeader("Content-length", params.length);
-    req.setRequestHeader("Connection", "close");
-    req.onreadystatechange = function() {//Call a function when the state changes.
-        if (req.readyState === 4) {
-            if (req.status === 200) {
-                json = JSON.parse(req.responseText);
-                if (json['error'] === undefined) {
-                    ausgabenAnzeigen();
-                    if (callback !== undefined) {
-                        callback();
-                    }
-                    $("#month").text(datum.format("MMMM YYYY"));
-                    $('#loading-screen').remove();
-                } else {
-                    errorHandling(json);
-                }
+    $.post('api.php', {action: 'get_month', month: (datum.month() + 1), year: datum.year()}).done(function(data) {
+        json = JSON.parse(data);
+        if (json['error'] === undefined) {
+            ausgabenAnzeigen();
+            if (callback !== undefined) {
+                callback();
             }
+            $("#month").text(datum.format("MMMM YYYY"));
+            $('#loading-screen').remove();
+        } else {
+            errorHandling(json);
         }
-    };
-    req.send(params);
+    });
 }
 
 function vorherigerMonat() {
@@ -345,7 +302,7 @@ function loadingScreen() {
     $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'">\uE802</span> ' + datum.format("MMMM YYYY"));
     $(".ausgabe").remove();
     if (!document.getElementById('loading-screen')) {
-        $('#ausgaben').append($('<div>').css({"background-color": "#ccc"}).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({"font-family": "nsvb-symbol", "font-size": "200%"}).addClass('loading').append($('<span>').addClass('animate-spin').text('\uE802')))))
+        $('#ausgaben').append($('<div>').css({"background-color": "#ccc"}).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({"font-family": "nsvb-symbol", "font-size": "200%"}).addClass('loading').append($('<span>').addClass('animate-spin').text('\uE802')))));
         $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
     }
 }
@@ -364,38 +321,22 @@ function removeEntry(e) {
     var el = e.target;
     var ausgabenElement = el.parentNode.parentNode;
 
-    //alert(el.parentNode.parentNode.getAttribute("data-id"));
-
     var preis = $(ausgabenElement).children(".preis").html();
     preis = preis.split(" ")[0];
     preis = convertPreisToPoint(preis);
 
-    var req = initRequest();
-    var url = "deleteAusgabe.php";
-    var params = "idausgabe=" + ausgabenElement.getAttribute("data-id");
-    req.open("POST", url, true);
-    //Send the proper header information along with the request
-    req.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
-    req.setRequestHeader("Content-length", params.length);
-    req.setRequestHeader("Connection", "close");
+    $.post('api.php', {action: 'delete', idausgabe: ausgabenElement.getAttribute("data-id")}).done(function(data) {
+        var json = JSON.parse(data);
+        if (json['error'] === undefined) {
+            if (json.deleted === 'true') {
+                document.getElementById("ausgabenliste").removeChild(ausgabenElement);
 
-    req.onreadystatechange = function() {//Call a function when the state changes.
-        if (req.readyState === 4) {
-            if (req.status === 200) {
-                var json = JSON.parse(req.responseText);
-                if (json['error'] === undefined) {
-                    if (json.deleted === 'true') {
-                        document.getElementById("ausgabenliste").removeChild(ausgabenElement);
-
-                        addSpendings(-preis);
-                    }
-                } else {
-                    errorHandling(json);
-                }
+                addSpendings(-preis);
             }
+        } else {
+            errorHandling(json);
         }
-    };
-    req.send(params);
+    });
 }
 
 function fehlerAnzeigen(error, id) {
@@ -431,7 +372,7 @@ function fehlerLöschen(id) {
 }
 
 function ausgabenSpeichern() {
-    var error = new Object();
+    var error = {};
     var showError = false;
 
     fehlerLöschen();
@@ -504,27 +445,24 @@ function ausgabenSpeichern() {
         } else {
             ausgabenSpeichernRequest();
         }
-
-
     }
 }
 
 function ausgabenSpeichernRequest() {
-    var params = new Object();
-    params.datum = ausgabe.datumDB;
+    var params = {
+        datum: ausgabe.datumDB,
+        art: encodeURIComponent(ausgabe.art),
+        preis: ausgabe.preisDB,
+        action: 'add'
+    };
     if (ausgabe.kategorie) {
         params.kategorie = encodeURIComponent(ausgabe.kategorie);
     }
-    params.art = encodeURIComponent(ausgabe.art);
-    params.preis = ausgabe.preisDB;
     if (ausgabe.beschreibung) {
         params.beschreibung = encodeURIComponent(ausgabe.beschreibung);
     }
 
-    $.ajax("saveAusgabe.php", {
-        type: 'POST',
-        data: params
-    }).done(function(result) {
+    $.post("api.php", params).done(function(result) {
         var json = JSON.parse(result);
         if (json['error'] === undefined) {
             var element = createRow(json['id'], ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
@@ -537,12 +475,10 @@ function ausgabenSpeichernRequest() {
 
             clearInput();
 
-            ausgabe = new Object();
+            ausgabe = {};
         } else {
             errorHandling(json);
         }
-    }).fail(function(msg) {
-        alert("Speichern der Ausgabe fehlgeschlagen: " + msg);
     });
 }
 
@@ -666,7 +602,7 @@ function cancelEditEntry(e) {
 }
 
 function updateEntry(e) {
-    var error = new Object();
+    var error = {};
     var showError = false;
 
     var el = e.target;
@@ -680,7 +616,7 @@ function updateEntry(e) {
     var idausgabe = $(ausgabenElement).attr('data-id');
     fehlerLöschen(idausgabe);
 
-    var params = new Object();
+    var params = {};
 
     if ($(ausgabenElement).children('.td-datum').attr('data-input') !== $(ausgabenElement).children('.td-datum').children('input').val()) {
         var datumAusgabe = $(ausgabenElement).children('.td-datum').children('input').val();
@@ -735,15 +671,13 @@ function updateEntry(e) {
     }
 
     params.idausgabe = idausgabe;
+    params.action = 'edit';
 
     if (showError) {
         fehlerAnzeigen(error, idausgabe);
         readdEditControls(ausgabenElement);
     } else {
-        $.ajax("editAusgabe.php", {
-            type: 'POST',
-            data: params
-        }).done(function(result) {
+        $.post("api.php", params).done(function(result) {
             var json = JSON.parse(result);
             if (json['error'] === undefined) {
                 var sameMonth = true;
@@ -794,9 +728,6 @@ function updateEntry(e) {
                 readdEditControls(ausgabenElement);
                 errorHandling(json);
             }
-        }).fail(function(msg) {
-            readdEditControls(ausgabenElement);
-            alert("Ändern der Ausgabe fehlgeschlagen: " + msg);
         });
     }
 }
