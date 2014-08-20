@@ -1,5 +1,7 @@
 <?php
 
+!defined('SECURE') and exit;
+
 if (!isset($_POST["idausgabe"])) {
     die('{"error":"server","msg":"Ausgaben ID fehlt"}');
 }

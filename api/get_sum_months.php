@@ -1,5 +1,7 @@
 <?php
 
+!defined('SECURE') and exit;
+
 $result = $mysqli->query('CALL eua.summeAusgabenMonate();');
 
 if (!$result) {

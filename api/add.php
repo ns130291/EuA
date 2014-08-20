@@ -1,5 +1,7 @@
 <?php
 
+!defined('SECURE') and exit;
+
 $datum = '"' . $_POST["datum"] . '"';
 $kategorie = "";
 if (isset($_POST["kategorie"])) {

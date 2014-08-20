@@ -1,5 +1,7 @@
 <?php
 
+!defined('SECURE') and exit;
+
 function lastday($month, $year) {
     $result = strtotime("{$year}-{$month}-01");
     $result = strtotime('-1 second', strtotime('+1 month', $result));

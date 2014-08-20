@@ -1,5 +1,7 @@
 <?php
 
+!defined('SECURE') and exit;
+
 if (!isset($_POST["jahr"])) {
     die('{"error":"server","msg":"Jahr fehlt"}');
 }
