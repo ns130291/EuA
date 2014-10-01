@@ -1,42 +1,59 @@
 <?php
 require("PasswordHash.php");
+$errorUser = false;
+$errorPW = false;
+$errorLogin = false;
+$errorServer = false;
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    session_start();
-    $link = mysql_connect(':/var/run/mysqld/mysqld.sock', 'eua');
-    //$link = mysql_connect('localhost:3306', 'root');
-    if (!$link) {
-        die('Verbindung schlug fehl: ' . mysql_error());
+    if (!isset($_POST['user']) || $_POST['user'] == '') {
+        $errorUser = true;
     }
-    $t_hasher = new PasswordHash(8, FALSE);
-    $result = mysql_query(sprintf('CALL eua.checkPw("%s");', $_POST["user"]));
-    if (!$result) {
-        //header 500
-        $message = 'Ungültige Abfrage: ' . mysql_error() . "\n";
-        die($message);
-    } else {
-        if (mysql_result($result, 0)) {
-            $check = $t_hasher->CheckPassword($_POST["pw"], mysql_result($result, 0));
-            if ($check) {
-                $hostname = $_SERVER['HTTP_HOST'];
-                $path = dirname($_SERVER['PHP_SELF']);
-                $_SESSION['angemeldet'] = true;
-                header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php', true, 303);
-                //header('Location: http://' . $hostname . ($path == '/' ? '' : $path) . '/index.php', true, 303);
-                exit;
+    if (!isset($_POST['pw']) || $_POST['pw'] == '') {
+        $errorPW = true;
+    }
+    if (!$errorPW && !$errorUser) {
+        session_start();
+        $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+        if ($mysqli->connect_error) {
+            $_SESSION['angemeldet'] = false;
+            $errorServer = true;
+        }
+        $mysqli->set_charset('utf8');
+        $t_hasher = new PasswordHash(8, FALSE);
+        
+        $result = $mysqli->query(sprintf('CALL eua.checkPw("%s");', $_POST["user"]));
+        if (!$result) {
+            $_SESSION['angemeldet'] = false;
+            $errorServer = true;
+        } else {
+            $pw = $result->fetch_array();
+            $pw = $pw[0];
+            if ($pw) {
+                $check = $t_hasher->CheckPassword($_POST["pw"], $pw);
+                if ($check) {
+                    $hostname = $_SERVER['HTTP_HOST'];
+                    $path = dirname($_SERVER['PHP_SELF']);
+                    $_SESSION['angemeldet'] = true;
+                    header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php', true, 303);
+                    exit;
+                } else {
+                    $_SESSION['angemeldet'] = false;
+                    $errorLogin = true;
+                }
             } else {
                 $_SESSION['angemeldet'] = false;
+                $errorLogin = true;
             }
         }
+        mysql_close($link);
     }
-    mysql_close($link);
 } else {
     session_start();
-    $hostname = $_SERVER['HTTP_HOST'];
-    $path = dirname($_SERVER['PHP_SELF']);
     if ($_SESSION) {
         if (!isset($_SESSION['angemeldet']) && !$_SESSION['angemeldet']) {
+            $hostname = $_SERVER['HTTP_HOST'];
+            $path = dirname($_SERVER['PHP_SELF']);
             header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php');
-            //header('Location: http://' . $hostname . ($path == '/' ? '' : $path) . '/index.php');
             exit;
         }
     }
@@ -61,16 +78,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div id="loginformcontainer">
                     <?php /* irgendwas verhindert, dass auf der android tastatur "next" angezeigt wird für die formularfelder */ ?>
                     <form action="login.php" method="post" id="loginform">
+                        <?php
+                        if ($errorUser) {
+                            echo '<div class="error-login">Username muss angegeben werden</div>';
+                        }
+                        if ($errorPW) {
+                            echo '<div class="error-login">Passwort fehlt</div>';
+                        }
+                        if ($errorLogin) {
+                            echo '<div class="error-login">Login fehlgeschlagen: Username und Passwort überprüfen</div>';
+                        }
+                        if ($errorServer) {
+                            echo '<div class="error-login">Login nicht möglich: Bitte später erneut probieren</div>';
+                        }
+                        ?>
                         <div class="cf" style="padding-bottom: 5px;">
-                            <label for="user" class="login-label left">Benutzer</label><input id="user" name="user" class="right login-input" type="text"/>
+                            <label for="user" class="login-label left">Benutzer</label><input id="user" name="user" class="right login-input" type="text" autofocus="autofocus"/>
                         </div>
                         <div class="cf">
-                            <label for="pw" class="login-label left">Passwort</label><input id="pw" class="right login-input" type="password"/>
+                            <label for="pw" class="login-label left">Passwort</label><input id="pw" name="pw" class="right login-input" type="password"/>
                         </div>
                         <div class="cf" style="padding-top: 25px;">
                             <div id="loginbutton" class="right">
                                 <input type="submit" id="submitBtn" value="Login"/>
-                                <input id="hidden" name="pw" type="hidden"/>
                             </div>
                             <a href="#" class="left" style="display: none;">Account anlegen</a>
                         </div>
