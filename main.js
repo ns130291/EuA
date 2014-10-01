@@ -59,6 +59,19 @@ function overlayCharts() {
                 }
                 $('#select .select-element').first().addClass('active');
                 $('#select-mobile > select > optgroup').first().children('option').first().attr('selected', 'selected');
+
+                //change listener on select element for mobile
+                //TODO: change active element in desktop version and vice versa
+                $('#select-mobile > select').change(function(e) {
+                    var optionSelected = $(this).find("option:selected");
+                    if($(optionSelected).attr('data-month') != null){
+                        monthChart($(optionSelected).attr('data-month'), $(optionSelected).attr('data-year'))
+                    }else{
+                        yearChart($(optionSelected).attr('data-year'))
+                    }
+                    
+                });
+
                 //TODO: load chart from selected category
                 yearChart(2014);
             }
