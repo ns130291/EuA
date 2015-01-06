@@ -73,7 +73,9 @@ function overlayCharts() {
                 });
 
                 //TODO: load chart from selected category
-                yearChart(2014);
+                if(ausgaben.length > 0){
+                    yearChart(ausgaben[0].jahr);
+                }
             }
         } else {
             errorHandling(json);
