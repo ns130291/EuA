@@ -19,6 +19,13 @@ if (isset($_POST["beschreibung"])) {
 }
 
 $mysqli->query(sprintf('CALL eua.ausgabeSpeichern(%s,%s,%s,%s,%s);', $datum, $kategorie, $art, $preis, $beschreibung));
-
-echo '{"id":"' . $mysqli->insert_id . '"}';
+$insertId = $mysqli->insert_id;
+if ($insertId == 0) {
+    $result = $mysqli->query('SELECT MAX(idausgabe) as insertid FROM ausgabe;');
+    if ($result) {
+        $row = $result->fetch_assoc();
+        $insertId = $row['insertid'];
+    }
+}
+echo '{"id":"' . $insertId . '"}';
 
