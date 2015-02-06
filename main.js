@@ -333,24 +333,28 @@ function ausgabenAnzeigen() {
             $("#ausgabenliste").append(element);
         }
     } else {
-        var empty = $('<div/>', {
-            id:'empty',
-            class:'vert-center'
-        }).append($('<div/>', {
-            class:'text-center'
-        }).append($('<span/>', {
-            class: 'icon-list'
-        }).css({
-            'font-size': '50px'
-        }))).append($('<div/>', {
-            class:'text-center',
-            text: 'Keine Ausgaben in diesem Monat'
-        }).css({
-            'font-size': '25px'
-        }));       
-        
-        $("#ausgaben").append(empty);
+        showEmpty();
     }
+}
+
+function showEmpty() {
+    var empty = $('<div/>', {
+        id: 'empty',
+        class: 'vert-center'
+    }).append($('<div/>', {
+        class: 'text-center'
+    }).append($('<span/>', {
+        class: 'icon-list'
+    }).css({
+        'font-size': '50px'
+    }))).append($('<div/>', {
+        class: 'text-center',
+        text: 'Keine Ausgaben in diesem Monat'
+    }).css({
+        'font-size': '25px'
+    }));
+
+    $("#ausgaben").append(empty);
 }
 
 function removeEntry(e) {
@@ -368,11 +372,20 @@ function removeEntry(e) {
                 document.getElementById("ausgabenliste").removeChild(ausgabenElement);
 
                 addSpendings(-preis);
+                
+                if(isEmpty($('#ausgabenliste'))){
+                    showEmpty();
+                }
             }
         } else {
             errorHandling(json);
         }
     });
+}
+
+//http://stackoverflow.com/a/6813294/1565646
+function isEmpty(el) {
+    return !$.trim(el.html())
 }
 
 function fehlerAnzeigen(error, id) {
@@ -501,6 +514,8 @@ function ausgabenSpeichernRequest() {
     $.post("api.php", params).done(function(result) {
         var json = JSON.parse(result);
         if (json['error'] === undefined) {
+            //remove empty view if visible
+            $('#empty').remove();
             var element = createRow(json['id'], ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
             element.className += " new";
             //TODO: insert new Ausgabe at the appropriate position
