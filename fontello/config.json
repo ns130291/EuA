@@ -19,6 +19,12 @@
       "src": "fontelico"
     },
     {
+      "uid": "48b87105bd38c20315f1b705b8c7b38c",
+      "css": "list",
+      "code": 59399,
+      "src": "fontawesome"
+    },
+    {
       "uid": "ce7452abce8b55ded1c393997a51e6b3",
       "css": "ok",
       "code": 59396,

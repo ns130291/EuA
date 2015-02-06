@@ -316,6 +316,7 @@ function andererMonat(callback) {
 function loadingScreen() {
     $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'">\uE802</span> ' + datum.format("MMMM YYYY"));
     $(".ausgabe").remove();
+    $('#empty').remove();
     if (!document.getElementById('loading-screen')) {
         $('#ausgaben').append($('<div>').css({"background-color": "#ccc"}).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({"font-family": "nsvb-symbol", "font-size": "200%"}).addClass('loading').append($('<span>').addClass('animate-spin').text('\uE802')))));
         $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
@@ -326,9 +327,29 @@ function ausgabenAnzeigen() {
     $("#spendings").text(((json['summeausgaben'].indexOf(".")) ? json['summeausgaben'].replace(".", ",") : json['summeausgaben']) + " €");
 
     var ausgaben = json['ausgaben'];
-    for (var x in ausgaben) {
-        var element = createRow(ausgaben[x].idausgabe, dateToLocal(ausgaben[x].datum), (ausgaben[x].kategorie) ? ausgaben[x].kategorie : "", ausgaben[x].art, (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis, (ausgaben[x].beschreibung) ? ausgaben[x].beschreibung : "");
-        $("#ausgabenliste").append(element);
+    if (ausgaben.length > 0) {
+        for (var x in ausgaben) {
+            var element = createRow(ausgaben[x].idausgabe, dateToLocal(ausgaben[x].datum), (ausgaben[x].kategorie) ? ausgaben[x].kategorie : "", ausgaben[x].art, (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis, (ausgaben[x].beschreibung) ? ausgaben[x].beschreibung : "");
+            $("#ausgabenliste").append(element);
+        }
+    } else {
+        var empty = $('<div/>', {
+            id:'empty',
+            class:'vert-center'
+        }).append($('<div/>', {
+            class:'text-center'
+        }).append($('<span/>', {
+            class: 'icon-list'
+        }).css({
+            'font-size': '50px'
+        }))).append($('<div/>', {
+            class:'text-center',
+            text: 'Keine Ausgaben in diesem Monat'
+        }).css({
+            'font-size': '25px'
+        }));       
+        
+        $("#ausgaben").append(empty);
     }
 }
 

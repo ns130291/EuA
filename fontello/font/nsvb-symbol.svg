@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg">
-<metadata>Copyright (C) 2014 by original authors @ fontello.com</metadata>
+<metadata>Copyright (C) 2015 by original authors @ fontello.com</metadata>
 <defs>
 <font id="nsvb-symbol" horiz-adv-x="1000" >
 <font-face font-family="nsvb-symbol" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
@@ -13,6 +13,7 @@
 <glyph glyph-name="ok" unicode="&#xe804;" d="m0 260l162 162 166-164 508 510 164-164-510-510-162-162-162 164z" horiz-adv-x="1000" />
 <glyph glyph-name="cancel" unicode="&#xe805;" d="m0 71l279 279-279 279 221 221 279-279 279 279 221-221-279-279 279-279-221-221-279 279-279-279z" horiz-adv-x="1000" />
 <glyph glyph-name="pencil" unicode="&#xe806;" d="m0-143l68 343 274-273z m137 392l422 422 259-260-421-422z m531 494q2 39 31 69t69 31 66-26l131-130q25-26 24-66t-30-69-69-30-66 24l-131 131q-27 27-25 66z" horiz-adv-x="989" />
+<glyph glyph-name="list" unicode="&#xe807;" d="m143 118v-107q0-7-5-13t-13-5h-107q-7 0-13 5t-5 13v107q0 7 5 12t13 6h107q7 0 13-6t5-12z m0 214v-107q0-7-5-13t-13-5h-107q-7 0-13 5t-5 13v107q0 7 5 13t13 5h107q7 0 13-5t5-13z m0 214v-107q0-7-5-12t-13-6h-107q-7 0-13 6t-5 12v107q0 8 5 13t13 5h107q7 0 13-5t5-13z m857-428v-107q0-7-5-13t-13-5h-750q-7 0-12 5t-6 13v107q0 7 6 12t12 6h750q7 0 13-6t5-12z m-857 643v-107q0-8-5-13t-13-5h-107q-7 0-13 5t-5 13v107q0 7 5 12t13 6h107q7 0 13-6t5-12z m857-429v-107q0-7-5-13t-13-5h-750q-7 0-12 5t-6 13v107q0 7 6 13t12 5h750q7 0 13-5t5-13z m0 214v-107q0-7-5-12t-13-6h-750q-7 0-12 6t-6 12v107q0 8 6 13t12 5h750q7 0 13-5t5-13z m0 215v-107q0-8-5-13t-13-5h-750q-7 0-12 5t-6 13v107q0 7 6 12t12 6h750q7 0 13-6t5-12z" horiz-adv-x="1000" />
 </font>
 </defs>
 </svg>

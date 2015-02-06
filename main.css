@@ -401,6 +401,23 @@ content{
     height: 500px;
 }
 
+#empty{
+    color: lightgray;
+}
+
+.vert-center{
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.text-center{
+    text-align: center;
+}
+
+.preload-symbol{
+    font-family: 'nsvb-symbol';
+}
+
 @media (min-width:400px) {
     #login{
         max-width: 360px;

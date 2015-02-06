@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <script type="text/javascript" src="login.js"></script>
     </head>
     <body>
-        <div id="spacertop"></div>
+        <div id="spacertop" class="preload-symbol"></div>
         <div id="logincontainer">
             <div id="login">
                 <div id="loginformcontainer">
