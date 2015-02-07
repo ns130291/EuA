@@ -12,6 +12,10 @@ $(document).ready(function() {
     $("#spendings").click(overlay);
     $("#plusbutton").click(ausgabenSpeichern);
     $("#overlay-close").click(ausgaben);
+    $("#input-form").submit(function(e){
+        ausgabenSpeichern();
+        e.preventDefault();
+    });
     $(window).resize(resize);
     $(window).on('popstate', back);
     resize();

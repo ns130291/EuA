@@ -63,29 +63,32 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                 <section id="ausgaben">
                     <div id="ausgabenliste" class="table"></div>
                 </section>
-                <footer class="table" style="width: 100%;">
-                    <div id="input" class="tr">
-                        <div class="td td-datum">
-                            <input id="input-datum" placeholder="Datum" size="10" type="date">
+                <form id="input-form">
+                    <footer class="table" style="width: 100%;">
+                        <div id="input" class="tr">
+                            <div class="td td-datum">
+                                <input id="input-datum" placeholder="Datum" size="10" type="date">
+                            </div>
+                            <div class="td td-kategorie">
+                                <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text" autocomplete="off">
+                            </div>
+                            <div class="td td-art">
+                                <input id="input-art" placeholder="Edeka, Döner, etc." type="text">
+                            </div>
+                            <div class="td td-preis">
+                                <input id="input-preis" size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
+                                <span>&euro;</span>
+                            </div>
+                            <div class="td td-beschreibung">
+                                <input id="input-beschreibung" placeholder="mit Vanessa, etc." type="text">
+                            </div>
+                            <div class="td td-optionen">
+                                <div id="plusbutton" class="plus icon-plus"></div>
+                                <input type="submit" style="display: none">
+                            </div>
                         </div>
-                        <div class="td td-kategorie">
-                            <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text" autocomplete="off">
-                        </div>
-                        <div class="td td-art">
-                            <input id="input-art" placeholder="Edeka, Döner, etc." type="text">
-                        </div>
-                        <div class="td td-preis">
-                            <input id="input-preis" size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
-                            <span>&euro;</span>
-                        </div>
-                        <div class="td td-beschreibung">
-                            <input id="input-beschreibung" placeholder="mit Vanessa, etc." type="text">
-                        </div>
-                        <div class="td td-optionen">
-                            <div id="plusbutton" class="plus icon-plus"></div>
-                        </div>
-                    </div>
-                </footer>
+                    </footer>
+                </form>
             </section>
         </div>
         <div id="overlay">
