@@ -24,13 +24,18 @@ $(document).ready(function() {
 
 function back(e) {
     var state = e.originalEvent.state;
-    if (state !== null && state.year !== undefined && state.month !== undefined) {
-        datum.year(state.year).month(state.month);
+    if (state !== null && state.stats !== undefined) {
+        overlay();
     } else {
-        datum = moment();
+        if (state !== null && state.year !== undefined && state.month !== undefined) {
+            datum.year(state.year).month(state.month);
+        } else {
+            datum = moment();
+        }
+        ausgaben();
+        loadingScreen();
+        holeAusgaben();
     }
-    loadingScreen();
-    holeAusgaben();
 }
 
 function ausgaben() {

@@ -8,7 +8,7 @@ if (!isset($_POST["jahr"]) || !isset($_POST["monat"])) {
 $jahr = $_POST["jahr"];
 $monat = $_POST["monat"];
 
-$result = $mysqli->query(sprintf('CALL eua.monatsuebersicht(%s, %s);', $monat, $jahr));
+$result = $mysqli->query(sprintf('CALL eua.monatsuebersicht(%s, %s, %s);', $monat, $jahr, $_SESSION['defaultKonto']));
 
 if (!$result) {
     echo '{"error":"server","msg":"Keine Ergebnisse"}';

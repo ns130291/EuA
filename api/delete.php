@@ -7,7 +7,7 @@ if (!isset($_POST["idausgabe"])) {
 }
 $idausgabe = $_POST["idausgabe"];
 
-$result = $mysqli->query(sprintf('CALL eua.ausgabeLöschen(%s);', $idausgabe));
+$result = $mysqli->query(sprintf('CALL eua.ausgabeLöschen(%s, %s);', $idausgabe, $_SESSION['defaultKonto']));
 
 $json = array();
 

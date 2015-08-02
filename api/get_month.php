@@ -18,7 +18,7 @@ $year = filter_input(INPUT_POST, 'year');
 $startDate = $year . "-" . $month . "-01";
 $endDate = lastday($month, $year);
 
-$result = $mysqli->query(sprintf('CALL eua.holeAusgabenMonat("%s","%s");', $startDate, $endDate));
+$result = $mysqli->query(sprintf('CALL eua.holeAusgabenMonat("%s","%s",%s);', $startDate, $endDate, $_SESSION['defaultKonto']));
 
 if (!$result) {
     echo '{"error":"server","msg":"Keine Ergebnisse"}';
@@ -33,7 +33,7 @@ if (!$result) {
     $mysqli->close();
     $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
 
-    $result = $mysqli->query(sprintf('CALL eua.summeAusgabenMonat("%s","%s");', $startDate, $endDate));
+    $result = $mysqli->query(sprintf('CALL eua.summeAusgabenMonat("%s","%s",%s);', $startDate, $endDate, $_SESSION['defaultKonto']));
 
     if (!$result) {
         die('{"error":"server","msg":"Keine Ausgaben in diesem Monat: Summe fehlt:' . $mysqli->error . ' "}');

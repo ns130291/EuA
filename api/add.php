@@ -18,7 +18,7 @@ if (isset($_POST["beschreibung"])) {
     $beschreibung = "null";
 }
 
-$mysqli->query(sprintf('CALL eua.ausgabeSpeichern(%s,%s,%s,%s,%s);', $datum, $kategorie, $art, $preis, $beschreibung));
+$mysqli->query(sprintf('CALL eua.ausgabeSpeichern(%s,%s,%s,%s,%s,%s);', $datum, $kategorie, $art, $preis, $beschreibung, $_SESSION['defaultKonto']));
 $insertId = $mysqli->insert_id;
 if ($insertId == 0) {
     $result = $mysqli->query('SELECT MAX(idausgabe) as insertid FROM ausgabe;');

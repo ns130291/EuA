@@ -7,7 +7,7 @@ if (!isset($_POST["jahr"])) {
 }
 $jahr = $_POST["jahr"];
 
-$result = $mysqli->query(sprintf('CALL eua.jahresuebersicht(%s);', $jahr));
+$result = $mysqli->query(sprintf('CALL eua.jahresuebersicht(%s, %s);', $jahr, $_SESSION['defaultKonto']));
 
 if (!$result) {
     echo '{"error":"server","msg":"Keine Ergebnisse"}';

@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $mysqli->set_charset('utf8');
         $t_hasher = new PasswordHash(8, FALSE);
-        
+
         $result = $mysqli->query(sprintf('CALL eua.checkPw("%s");', $_POST["user"]));
         if (!$result) {
             $_SESSION['angemeldet'] = false;
@@ -31,11 +31,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($pw) {
                 $check = $t_hasher->CheckPassword($_POST["pw"], $pw);
                 if ($check) {
-                    $hostname = $_SERVER['HTTP_HOST'];
-                    $path = dirname($_SERVER['PHP_SELF']);
-                    $_SESSION['angemeldet'] = true;
-                    header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php', true, 303);
-                    exit;
+                    $mysqli->close();
+                    $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+                    $result = $mysqli->query(sprintf('CALL eua.standardKonto("%s");', $_POST["user"]));
+                    if (!$result) {
+                        $_SESSION['angemeldet'] = false;
+                        $errorServer = true;
+                    } else {
+                        $defaultKonto = $result->fetch_array();
+                        $defaultKonto = $defaultKonto[0];
+                        if ($defaultKonto) {
+                            $_SESSION['user'] = $_POST["user"];
+                            $_SESSION['defaultKonto'] = $defaultKonto;
+                            $hostname = $_SERVER['HTTP_HOST'];
+                            $path = dirname($_SERVER['PHP_SELF']);
+                            $_SESSION['angemeldet'] = true;
+                            header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php', true, 303);
+                            exit;
+                        } else {
+                            $_SESSION['angemeldet'] = false;
+                            $errorServer = true;
+                        }
+                    }
                 } else {
                     $_SESSION['angemeldet'] = false;
                     $errorLogin = true;
@@ -45,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $errorLogin = true;
             }
         }
-        mysql_close($link);
+        $mysqli->close();
     }
 } else {
     session_start();

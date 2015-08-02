@@ -30,7 +30,7 @@ $json["idausgabe"] = $_POST["idausgabe"];
 
 if (!empty($set)) {
     $sql .= rtrim($set, ",");
-    $sql .= ' WHERE idausgabe = ' . $mysqli->real_escape_string($_POST["idausgabe"]) . ';';
+    $sql .= ' WHERE idausgabe = ' . $mysqli->real_escape_string($_POST["idausgabe"]) . ' AND konto = ' . $mysqli->real_escape_string($_SESSION['defaultKonto']) . ';';
 
     $result = $mysqli->query($sql);
 

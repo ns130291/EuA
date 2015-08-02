@@ -2,7 +2,7 @@
 
 !defined('SECURE') and exit;
 
-$result = $mysqli->query('CALL eua.summeAusgabenMonate();');
+$result = $mysqli->query(sprintf('CALL eua.summeAusgabenMonate(%s);', $_SESSION['defaultKonto']));
 
 if (!$result) {
     echo '{"error":"server","msg":"Keine Ergebnisse"}';
