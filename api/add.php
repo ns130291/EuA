@@ -5,7 +5,7 @@
 $datum = '"' . $_POST["datum"] . '"';
 $kategorie = "";
 if (isset($_POST["kategorie"])) {
-    $kategorie = '"' . $_POST["kategorie"] . '"';
+    $kategorie = '"' . urldecode($_POST["kategorie"]) . '"';
 } else {
     $kategorie = "null";
 }
@@ -13,7 +13,7 @@ $art = '"' . urldecode($_POST["art"]) . '"';
 $preis = $_POST["preis"];
 $beschreibung = "";
 if (isset($_POST["beschreibung"])) {
-    $beschreibung = '"' . $_POST["beschreibung"] . '"';
+    $beschreibung = '"' . urldecode($_POST["beschreibung"]) . '"';
 } else {
     $beschreibung = "null";
 }
