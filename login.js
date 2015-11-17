@@ -34,8 +34,7 @@ function login(e) {
         document.getElementById("loginformcontainer").insertBefore(error, document.getElementById("loginform"));
         e.preventDefault();
     }
-    
-    document.getElementById("hidden").value = pw;
+
     var load = document.createElement("span");
     load.id = "load";
     load.className = "animate-spin";

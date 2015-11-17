@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'nsvb-symbol';
-  src: url('../font/nsvb-symbol.eot?54324642');
-  src: url('../font/nsvb-symbol.eot?54324642#iefix') format('embedded-opentype'),
-       url('../font/nsvb-symbol.woff?54324642') format('woff'),
-       url('../font/nsvb-symbol.ttf?54324642') format('truetype'),
-       url('../font/nsvb-symbol.svg?54324642#nsvb-symbol') format('svg');
+  src: url('../font/nsvb-symbol.eot?24574935');
+  src: url('../font/nsvb-symbol.eot?24574935#iefix') format('embedded-opentype'),
+       url('../font/nsvb-symbol.woff?24574935') format('woff'),
+       url('../font/nsvb-symbol.ttf?24574935') format('truetype'),
+       url('../font/nsvb-symbol.svg?24574935#nsvb-symbol') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -14,7 +14,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'nsvb-symbol';
-    src: url('../font/nsvb-symbol.svg?54324642#nsvb-symbol') format('svg');
+    src: url('../font/nsvb-symbol.svg?24574935#nsvb-symbol') format('svg');
   }
 }
 */
@@ -57,3 +57,4 @@
 .icon-ok:before { content: '\e804'; } /* '' */
 .icon-cancel:before { content: '\e805'; } /* '' */
 .icon-pencil:before { content: '\e806'; } /* '' */
+.icon-list:before { content: '\e807'; } /* '' */
