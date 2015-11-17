@@ -42,7 +42,7 @@ if (!$result) {
         if ($row[0] == "") {
             $row[0] = "0.00";
         }
-        $json = '{"summeausgaben":"' . $row[0] . '","ausgaben":' . $ausgaben . '}';
+        $json = '{"summeausgaben":"' . $row[0] . '","jahr":"' . $year . '","monat":"' . $month . '","ausgaben":' . $ausgaben . '}';
         echo $json;
     }
 }

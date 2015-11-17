@@ -10,7 +10,6 @@ $(document).ready(function() {
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#spendings").click(overlay);
-    $("#plusbutton").click(ausgabenSpeichern);
     $("#overlay-close").click(ausgaben);
     $("#input-form").submit(function(e){
         ausgabenSpeichern();
@@ -19,7 +18,7 @@ $(document).ready(function() {
     $(window).resize(resize);
     $(window).on('popstate', back);
     resize();
-    ausgabenLaden();
+    processURL();
 });
 
 function back(e) {
@@ -32,6 +31,11 @@ function back(e) {
         } else {
             datum = moment();
         }
+        if (state !== null && state.statistics !== undefined) {
+            overlay();
+            holeAusgaben();
+            return;
+        }
         ausgaben();
         loadingScreen();
         holeAusgaben();
@@ -41,11 +45,13 @@ function back(e) {
 function ausgaben() {
     $('#content').css('display', 'block');
     $('#overlay').css('display', 'none');
+    window.history.pushState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
 }
 
 function overlay() {
     $('#content').css('display', 'none');
     $('#overlay').css('display', 'block');
+    window.history.pushState({"year": datum.year(), "month": datum.month(), "statistics": ""}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&statistics");
     overlayCharts();
 }
 
@@ -243,19 +249,31 @@ function yearChart(year) {
 
 }
 
-function ausgabenLaden() {
+function processURL() {
     var location = window.location.search;
+    var stats = false;
     if (location !== null && location !== "") {
         var regYear = new RegExp("year=(\\d{4})");
         var regMonth = new RegExp("month=(\\d{1,2})");
         var year = regYear.exec(location);
         var month = regMonth.exec(location);
-        if (year.length === 2 && month.length === 2 && month[1] >= 1 && month[1] <= 12) {
+        if (month !== null && month.length === 2 && month[1] >= 1 && month[1] <= 12) {
+            if (year !== null && year.length === 2) {
+                datum.year(year[1]);
+            } else {
+                if (month[1] - 1 > datum.month()) {
+                    datum.subtract("year", 1);
+                }
+            }
             datum.month(month[1] - 1);
-            datum.year(year[1]);
         }
+        stats = location.contains("statistics");
     }
+    window.history.replaceState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
     holeAusgaben();
+    if (stats) {
+        overlay();
+    }
 }
 
 function resize() {
@@ -291,15 +309,17 @@ function errorHandling(json) {
 }
 
 function holeAusgaben(callback) {
-    $.post('api.php', {action: 'get_month', month: (datum.month() + 1), year: datum.year()}).done(function(data) {
+    $.post('api.php', {action: 'get_month', month: (datum.month() + 1), year: datum.year()}).done(function (data) {
         json = JSON.parse(data);
         if (json['error'] === undefined) {
-            ausgabenAnzeigen();
-            if (callback !== undefined) {
-                callback();
+            if (json['jahr'] == datum.year() && json['monat'] == datum.month() + 1) {
+                ausgabenAnzeigen();
+                if (callback !== undefined) {
+                    callback();
+                }
+                $("#month").text(datum.format("MMMM YYYY"));
+                $('#loading-screen').remove();
             }
-            $("#month").text(datum.format("MMMM YYYY"));
-            $('#loading-screen').remove();
         } else {
             errorHandling(json);
         }
@@ -544,6 +564,7 @@ function ausgabenSpeichernRequest() {
 
 function clearInput() {
     $('#input-datum, #input-kategorie, #input-art, #input-preis, #input-beschreibung').val("");
+    $('#input-datum').focus();
 }
 
 /**

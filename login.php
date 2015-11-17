@@ -46,7 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $hostname = $_SERVER['HTTP_HOST'];
                             $path = dirname($_SERVER['PHP_SELF']);
                             $_SESSION['angemeldet'] = true;
-                            header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php', true, 303);
+                            if (isset($_SESSION['lastURL'])) {
+                                header('Location: https://' . $hostname . $_SESSION['lastURL'], true, 303);
+                                unset($_SESSION['lastURL']);
+                            } else {
+                                header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php', true, 303);
+                            }
                             exit;
                         } else {
                             $_SESSION['angemeldet'] = false;
@@ -67,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 } else {
     session_start();
     if ($_SESSION) {
-        if (!isset($_SESSION['angemeldet']) && !$_SESSION['angemeldet']) {
+        if (isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']) {
             $hostname = $_SERVER['HTTP_HOST'];
             $path = dirname($_SERVER['PHP_SELF']);
             header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php');

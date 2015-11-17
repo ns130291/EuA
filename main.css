@@ -1,3 +1,23 @@
+/* css reset*/
+/* for buttons */
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/* removes spinner buttons */ 
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance:textfield;
+}
+
+
 html, body{
     height: 100%;
     margin: 0;
@@ -296,6 +316,21 @@ content{
 
 .plus:hover{
     color: #4bb1ff;
+}
+
+#plusbutton{
+    background: transparent none repeat scroll 0px 0px;
+    border-spacing: 0px;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1.42rem;
+    list-style: outside none none;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    margin: 0px;
+    padding: 0px;
+    border: medium none;
 }
 
 .td-datum{

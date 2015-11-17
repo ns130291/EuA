@@ -5,6 +5,7 @@ $hostname = $_SERVER['HTTP_HOST'];
 $path = dirname($_SERVER['PHP_SELF']);
 
 if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
+    $_SESSION['lastURL'] = $_SERVER['REQUEST_URI'];
     header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/login.php');
     exit;
 }
@@ -70,7 +71,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                                 <input id="input-datum" placeholder="Datum" size="10" type="date">
                             </div>
                             <div class="td td-kategorie">
-                                <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text" autocomplete="off">
+                                <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text">
                             </div>
                             <div class="td td-art">
                                 <input id="input-art" placeholder="Edeka, Döner, etc." type="text">
@@ -83,8 +84,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                                 <input id="input-beschreibung" placeholder="mit Vanessa, etc." type="text">
                             </div>
                             <div class="td td-optionen">
-                                <div id="plusbutton" class="plus icon-plus"></div>
-                                <input type="submit" style="display: none">
+                                <button id="plusbutton" type="submit" class="plus icon-plus"></button>
                             </div>
                         </div>
                     </footer>
