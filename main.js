@@ -15,7 +15,6 @@ $(document).ready(function() {
         ausgabenSpeichern();
         e.preventDefault();
     });
-    $(window).resize(resize);
     $(window).on('popstate', back);
     resize();
     processURL();
@@ -276,14 +275,6 @@ function processURL() {
     }
 }
 
-function resize() {
-    $('#ausgaben').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height());
-    $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
-    /*if(chart !== null){
-     //chart.redraw();
-     }*/
-}
-
 function errorHandling(json) {
     if (json['error'] === 'not_logged_in') {
         if (json['location']) {
@@ -398,7 +389,11 @@ function removeEntry(e) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.deleted === 'true') {
-                document.getElementById("ausgabenliste").removeChild(ausgabenElement);
+                $(ausgabenElement).on('transitionend', function(){
+                    document.getElementById("ausgabenliste").removeChild(ausgabenElement);
+                    alert('gelöscht');
+                });
+                $(ausgabenElement).addClass('remove-animation');
 
                 addSpendings(-preis);
                 

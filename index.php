@@ -29,7 +29,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
     </head>
     <body>
         <div id="content">
-            <header>
+            <header id="header">
                 <div id="navbar" class="bar cf">
                     <div id="previous-month" class="bar-element">&#8592;</div>
                     <div id="month" class="bar-element">Laden...</div>
@@ -39,7 +39,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                     </div>
                 </div>
             </header>
-            <section>
+            <section id="section-ausgabe">
                 <section id="table-header" class="table">
                     <div id="ausgabenliste-header" class="tr th">
                         <div class="td td-datum">
