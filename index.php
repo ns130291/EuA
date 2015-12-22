@@ -94,7 +94,11 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
         <div id="overlay">
             <div class="cf">
                 <div class="right" id="overlay-close">&times;</div>
-                <div id="select-mobile"></div>
+                <div id="select-mobile">
+                    <select>
+                        
+                    </select>
+                </div>
             </div>
             <div id="overlay-content">
                 <div id="select" class="left"></div>
