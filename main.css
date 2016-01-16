@@ -256,7 +256,8 @@ content{
 #section-ausgabe{
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex-grow: 1;
+    overflow-y: hidden;
 }
 
 #ausgaben{

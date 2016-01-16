@@ -16,7 +16,6 @@ $(document).ready(function() {
         e.preventDefault();
     });
     $(window).on('popstate', back);
-    resize();
     processURL();
 });
 
@@ -42,8 +41,8 @@ function back(e) {
 }
 
 function ausgaben() {
-    $('#content').css('display', 'block');
     $('#overlay').css('display', 'none');
+    $('#content').css('display', 'flex');
     window.history.pushState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
 }
 
@@ -391,7 +390,6 @@ function removeEntry(e) {
             if (json.deleted === 'true') {
                 $(ausgabenElement).on('transitionend', function(){
                     document.getElementById("ausgabenliste").removeChild(ausgabenElement);
-                    alert('gelöscht');
                 });
                 $(ausgabenElement).addClass('remove-animation');
 

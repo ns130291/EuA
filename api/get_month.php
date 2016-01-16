@@ -25,6 +25,9 @@ if (!$result) {
 } else {
     $rows = array();
     while ($array = $result->fetch_assoc()) {
+        foreach ($array as $key => $entry) {
+            $array[$key] = htmlspecialchars($entry);
+        }
         $rows[] = $array;
     }
     $ausgaben = json_encode($rows);
