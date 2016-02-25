@@ -30,13 +30,14 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
     <body>
         <div id="content">
             <header id="header">
-                <div id="navbar" class="bar cf">
+                <div id="navbar" class="bar">
                     <div id="previous-month" class="bar-element">&#8592;</div>
                     <div id="month" class="bar-element">Laden...</div>
                     <div id="next-month" class="bar-element">&#8594;</div>
-                    <div class="right">
-                        <div id="spendings" class="bar-element">Laden...</div>
-                    </div>
+                    <div class="spacer"></div>
+                    <div id="earnings" class="bar-element merge-start">Einnahmen &#x2010; €</div>
+                    <div id="spendings" class="bar-element merge-end active">Ausgaben &#x2010; €</div>
+                    <div id="switch-to-stats" class="bar-element">Statistiken</div>
                 </div>
             </header>
             <section id="section-ausgabe">

@@ -5,48 +5,61 @@ moment.lang("de");
 var datum = moment();
 var ausgabe = {};
 var chart = null;
+var currentView = "spendings";
 
-$(document).ready(function() {
+$(document).ready(function () {
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
-    $("#spendings").click(overlay);
-    $("#overlay-close").click(ausgaben);
-    $("#input-form").submit(function(e){
+    $("#switch-to-stats").click(showStatsView);
+    $("#overlay-close").click(showDataView);
+    $("#input-form").submit(function (e) {
         ausgabenSpeichern();
         e.preventDefault();
+    });
+    $("#spendings").click(function () {
+        $("#earnings").removeClass("active");
+        $("#spendings").addClass("active");
+        switchView("spendings");
+    });
+    $("#earnings").click(function () {
+        $("#spendings").removeClass("active");
+        $("#earnings").addClass("active");
+        switchView("earnings");
     });
     $(window).on('popstate', back);
     processURL();
 });
 
-function back(e) {
-    var state = e.originalEvent.state;
-    if (state !== null && state.stats !== undefined) {
-        overlay();
-    } else {
-        if (state !== null && state.year !== undefined && state.month !== undefined) {
-            datum.year(state.year).month(state.month);
-        } else {
-            datum = moment();
-        }
-        if (state !== null && state.statistics !== undefined) {
-            overlay();
-            holeAusgaben();
-            return;
-        }
-        ausgaben();
-        loadingScreen();
-        holeAusgaben();
+function switchView(view) {
+    if (currentView !== view) {
+        currentView = view;
+        datenAnzeigen();
     }
 }
 
-function ausgaben() {
+function back(e) {
+    var state = e.originalEvent.state;
+    if (state !== null && state.year !== undefined && state.month !== undefined) {
+        datum.year(state.year).month(state.month);
+    } else {
+        datum = moment();
+    }
+    if (state !== null && state.statistics !== undefined) {
+        showStatsView();
+    } else {
+        showDataView();
+        loadingScreen();
+    }
+    holeDaten();
+}
+
+function showDataView() {
     $('#overlay').css('display', 'none');
     $('#content').css('display', 'flex');
     window.history.pushState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
 }
 
-function overlay() {
+function showStatsView() {
     $('#content').css('display', 'none');
     $('#overlay').css('display', 'block');
     window.history.pushState({"year": datum.year(), "month": datum.month(), "statistics": ""}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&statistics");
@@ -54,7 +67,7 @@ function overlay() {
 }
 
 function overlayCharts() {
-    $.post('api.php', {action: 'get_sum_months'}).done(function(data) {
+    $.post('api.php', {action: 'get_sum_months'}).done(function (data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -75,18 +88,18 @@ function overlayCharts() {
 
                 //change listener on select element for mobile
                 //TODO: change active element in desktop version and vice versa
-                $('#select-mobile > select').change(function(e) {
+                $('#select-mobile > select').change(function (e) {
                     var optionSelected = $(this).find("option:selected");
-                    if($(optionSelected).attr('data-month') != null){
+                    if ($(optionSelected).attr('data-month') != null) {
                         monthChart($(optionSelected).attr('data-month'), $(optionSelected).attr('data-year'))
-                    }else{
+                    } else {
                         yearChart($(optionSelected).attr('data-year'))
                     }
-                    
+
                 });
 
                 //TODO: load chart from selected category
-                if(ausgaben.length > 0){
+                if (ausgaben.length > 0) {
                     yearChart(ausgaben[0].jahr);
                 }
             }
@@ -98,7 +111,7 @@ function overlayCharts() {
 
 function overlayAddSelect(label, year, spendings, month) {
     if (spendings === undefined) {
-        $('#select').append($('<div>').addClass('select-element year').html(label).attr('data-year', year).click(function(e) {
+        $('#select').append($('<div>').addClass('select-element year').html(label).attr('data-year', year).click(function (e) {
             $('#select').children().removeClass('active');
             $(e.target).addClass('active');
             yearChart($(e.target).attr('data-year'));
@@ -106,7 +119,7 @@ function overlayAddSelect(label, year, spendings, month) {
         $('#select-mobile > select').append($('<optgroup>').attr('label', label));
         $('#select-mobile > select > optgroup[label="' + label + '"]').append($('<option>').html('Übersicht ' + label).attr('data-year', year));
     } else {
-        $('#select').append($('<div>').addClass('select-element').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-month', month).attr('data-year', year).click(function(e) {
+        $('#select').append($('<div>').addClass('select-element').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-month', month).attr('data-year', year).click(function (e) {
             $('#select').children().removeClass('active');
             $(e.target).addClass('active');
             monthChart($(e.target).attr('data-month'), $(e.target).attr('data-year'));
@@ -117,7 +130,7 @@ function overlayAddSelect(label, year, spendings, month) {
 
 function monthChart(month, year) {
     $('#stats > .chart').empty();
-    $.post('api.php', {action: 'get_overview_month', monat: month, jahr: year}).done(function(data) {
+    $.post('api.php', {action: 'get_overview_month', monat: month, jahr: year}).done(function (data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -178,7 +191,7 @@ function monthChart(month, year) {
 
 function yearChart(year) {
     $('#stats > .chart').empty();
-    $.post('api.php', {action: 'get_overview_year', jahr: year}).done(function(data) {
+    $.post('api.php', {action: 'get_overview_year', jahr: year}).done(function (data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -224,7 +237,7 @@ function yearChart(year) {
                         }
                     },
                     tooltip: {
-                        formatter: function() {
+                        formatter: function () {
                             return this.x + '<br/>' +
                                     '<span style="color:' + this.series.color + '"> \u25CF </span>' + this.series.name + ': <b>' + convertPreisToComma(this.point.y) + ' €</b><br/>' +
                                     'Summe: ' + convertPreisToComma(this.point.stackTotal) + ' €';
@@ -268,9 +281,9 @@ function processURL() {
         stats = location.contains("statistics");
     }
     window.history.replaceState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
-    holeAusgaben();
+    holeDaten();
     if (stats) {
-        overlay();
+        showStatsView();
     }
 }
 
@@ -298,14 +311,14 @@ function errorHandling(json) {
     }
 }
 
-function holeAusgaben(callback) {
+function holeDaten(callback, ...args) {
     $.post('api.php', {action: 'get_month', month: (datum.month() + 1), year: datum.year()}).done(function (data) {
         json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json['jahr'] == datum.year() && json['monat'] == datum.month() + 1) {
-                ausgabenAnzeigen();
+                datenAnzeigen();
                 if (callback !== undefined) {
-                    callback();
+                    callback(...args);
                 }
                 $("#month").text(datum.format("MMMM YYYY"));
                 $('#loading-screen').remove();
@@ -326,10 +339,10 @@ function naechsterMonat() {
     andererMonat();
 }
 
-function andererMonat(callback) {
+function andererMonat(callback, ...args) {
     loadingScreen();
     window.history.pushState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
-    holeAusgaben(callback);
+    holeDaten(callback, ...args);
 }
 
 function loadingScreen() {
@@ -342,17 +355,25 @@ function loadingScreen() {
     }
 }
 
-function ausgabenAnzeigen() {
-    $("#spendings").text(((json['summeausgaben'].indexOf(".")) ? json['summeausgaben'].replace(".", ",") : json['summeausgaben']) + " €");
+function datenAnzeigen() {
+    var spendingAmount = (Math.round(parseFloat((json['summeausgaben'].indexOf(".")) ? json['summeausgaben'].replace(".", ",") : json['summeausgaben'])) + "");
+    $("#spendings").text("Ausgaben " + spendingAmount + " €");
 
-    var ausgaben = json['ausgaben'];
-    if (ausgaben.length > 0) {
-        for (var x in ausgaben) {
-            var element = createRow(ausgaben[x].idausgabe, dateToLocal(ausgaben[x].datum), (ausgaben[x].kategorie) ? ausgaben[x].kategorie : "", ausgaben[x].art, (ausgaben[x].preis.indexOf(".")) ? ausgaben[x].preis.replace(".", ",") : ausgaben[x].preis, (ausgaben[x].beschreibung) ? ausgaben[x].beschreibung : "");
-            $("#ausgabenliste").append(element);
+    var earningAmount = (Math.round(parseFloat((json['summeeinnahmen'].indexOf(".")) ? json['summeeinnahmen'].replace(".", ",") : json['summeeinnahmen'])) + "");
+    $("#earnings").text("Einnahmen " + earningAmount + " €");
+
+    if (currentView === "spendings" || currentView === "earnings") {
+        $(".ausgabe").remove();
+        $('#empty').remove();
+        var daten = currentView === "spendings" ? json['ausgaben'] : json['einnahmen'];
+        if (daten.length > 0) {
+            for (var x in daten) {
+                var element = createRow(currentView === "spendings" ? daten[x].idausgabe : daten[x].ideinnahme, dateToLocal(daten[x].datum), (daten[x].kategorie) ? daten[x].kategorie : "", daten[x].art, (daten[x].preis.indexOf(".")) ? daten[x].preis.replace(".", ",") : daten[x].preis, (daten[x].beschreibung) ? daten[x].beschreibung : "");
+                $("#ausgabenliste").append(element);
+            }
+        } else {
+            showEmpty();
         }
-    } else {
-        showEmpty();
     }
 }
 
@@ -368,7 +389,7 @@ function showEmpty() {
         'font-size': '50px'
     }))).append($('<div/>', {
         class: 'text-center',
-        text: 'Keine Ausgaben in diesem Monat'
+        text: 'Keine ' + (currentView === "spendings" ? 'Ausgaben' : 'Einnahmen') + ' in diesem Monat'
     }).css({
         'font-size': '25px'
     }));
@@ -384,18 +405,18 @@ function removeEntry(e) {
     preis = preis.split(" ")[0];
     preis = convertPreisToPoint(preis);
 
-    $.post('api.php', {action: 'delete', idausgabe: ausgabenElement.getAttribute("data-id")}).done(function(data) {
+    $.post('api.php', {action: 'delete', idausgabe: ausgabenElement.getAttribute("data-id")}).done(function (data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.deleted === 'true') {
-                $(ausgabenElement).on('transitionend', function(){
+                $(ausgabenElement).on('transitionend', function () {
                     document.getElementById("ausgabenliste").removeChild(ausgabenElement);
                 });
                 $(ausgabenElement).addClass('remove-animation');
 
                 addSpendings(-preis);
-                
-                if(isEmpty($('#ausgabenliste'))){
+
+                if (isEmpty($('#ausgabenliste'))) {
                     showEmpty();
                 }
             }
@@ -492,6 +513,7 @@ function ausgabenSpeichern() {
     if (showError) {
         fehlerAnzeigen(error);
     } else {
+        var ausgabe = {};
         ausgabe.datumDB = datumDB;
         ausgabe.datumAusgabe = datumAusgabe;
         ausgabe.kategorie = kategorie;
@@ -512,14 +534,14 @@ function ausgabenSpeichern() {
         if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
             datum.month(datumM.month());
             datum.year(datumM.year());
-            andererMonat(ausgabenSpeichernRequest);
+            andererMonat(ausgabenSpeichernRequest, ausgabe);
         } else {
-            ausgabenSpeichernRequest();
+            ausgabenSpeichernRequest(ausgabe);
         }
     }
 }
 
-function ausgabenSpeichernRequest() {
+function ausgabenSpeichernRequest(ausgabe) {
     var params = {
         datum: ausgabe.datumDB,
         art: encodeURIComponent(ausgabe.art),
@@ -533,7 +555,7 @@ function ausgabenSpeichernRequest() {
         params.beschreibung = encodeURIComponent(ausgabe.beschreibung);
     }
 
-    $.post("api.php", params).done(function(result) {
+    $.post("api.php", params).done(function (result) {
         var json = JSON.parse(result);
         if (json['error'] === undefined) {
             //remove empty view if visible
@@ -749,9 +771,9 @@ function updateEntry(e) {
 
     if (showError) {
         fehlerAnzeigen(error, idausgabe);
-        readdEditControls(ausgabenElement);
+        reAddEditControls(ausgabenElement);
     } else {
-        $.post("api.php", params).done(function(result) {
+        $.post("api.php", params).done(function (result) {
             var json = JSON.parse(result);
             if (json['error'] === undefined) {
                 var sameMonth = true;
@@ -799,14 +821,14 @@ function updateEntry(e) {
                     $(ausgabenElement).children('.td-optionen').children().css('display', '');
                 }
             } else {
-                readdEditControls(ausgabenElement);
+                reAddEditControls(ausgabenElement);
                 errorHandling(json);
             }
         });
     }
 }
 
-function readdEditControls(ausgabenElement) {
+function reAddEditControls(ausgabenElement) {
     $(ausgabenElement).children('.td-optionen').children('.change').remove();
 
     var update = document.createElement("div");

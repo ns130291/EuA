@@ -100,17 +100,20 @@ button, input, select {
 .bar{
     background-color: #4bb1ff;   
     padding: 5px;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .bar-element{
     display: inline-block;
     background-color: white;
     border-radius: 5px;
-    padding: 3px;
+    padding: 3px 8px;
     margin-right: 5px;
-    min-width: 30px;
+    min-width: 25px;
     text-align: center;
     border: 1px solid #666666;
+    line-height: 23px;
 }
 
 .bar-element:last-child{
@@ -119,14 +122,33 @@ button, input, select {
 
 .bar-element:hover{
     cursor: pointer;
+    background-color: #dddddd;
+}
+
+.spacer{
+    flex-grow: 1;
+}
+
+.merge-start{
+    border-radius: 5px 0 0 5px;
+    margin-right: 0;
+    border-right: none;
+}
+
+.merge-end{
+    border-radius: 0 5px 5px 0;
+}
+
+.active{
+    background-color: #aaaaaa;
+}
+
+.active:hover{
+    background-color: #aaaaaa;
 }
 
 #month{
     width: 15ch;
-}
-
-#spendings{
-    position: relative;
 }
 
 #month-overview{
