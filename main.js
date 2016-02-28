@@ -1,27 +1,29 @@
 "use strict";
 
+/*global moment*/
+/*global Highcharts*/
+
 var json = null;
 moment.lang("de");
 var datum = moment();
-var ausgabe = {};
 var chart = null;
 var currentView = "spendings";
 
-$(document).ready(function () {
+$(document).ready(function() {
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#switch-to-stats").click(showStatsView);
     $("#overlay-close").click(showDataView);
-    $("#input-form").submit(function (e) {
-        ausgabenSpeichern();
+    $("#input-form").submit(function(e) {
+        saveEntry();
         e.preventDefault();
     });
-    $("#spendings").click(function () {
+    $("#spendings").click(function() {
         $("#earnings").removeClass("active");
         $("#spendings").addClass("active");
         switchView("spendings");
     });
-    $("#earnings").click(function () {
+    $("#earnings").click(function() {
         $("#spendings").removeClass("active");
         $("#earnings").addClass("active");
         switchView("earnings");
@@ -41,12 +43,14 @@ function back(e) {
     var state = e.originalEvent.state;
     if (state !== null && state.year !== undefined && state.month !== undefined) {
         datum.year(state.year).month(state.month);
-    } else {
+    }
+    else {
         datum = moment();
     }
     if (state !== null && state.statistics !== undefined) {
         showStatsView();
-    } else {
+    }
+    else {
         showDataView();
         loadingScreen();
     }
@@ -56,18 +60,27 @@ function back(e) {
 function showDataView() {
     $('#overlay').css('display', 'none');
     $('#content').css('display', 'flex');
-    window.history.pushState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
+    window.history.pushState({
+        "year": datum.year(),
+        "month": datum.month()
+    }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
 }
 
 function showStatsView() {
     $('#content').css('display', 'none');
     $('#overlay').css('display', 'block');
-    window.history.pushState({"year": datum.year(), "month": datum.month(), "statistics": ""}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&statistics");
+    window.history.pushState({
+        "year": datum.year(),
+        "month": datum.month(),
+        "statistics": ""
+    }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&statistics");
     overlayCharts();
 }
 
 function overlayCharts() {
-    $.post('api.php', {action: 'get_sum_months'}).done(function (data) {
+    $.post('api.php', {
+        action: 'get_sum_months'
+    }).done(function(data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -88,12 +101,13 @@ function overlayCharts() {
 
                 //change listener on select element for mobile
                 //TODO: change active element in desktop version and vice versa
-                $('#select-mobile > select').change(function (e) {
+                $('#select-mobile > select').change(function(e) {
                     var optionSelected = $(this).find("option:selected");
                     if ($(optionSelected).attr('data-month') != null) {
-                        monthChart($(optionSelected).attr('data-month'), $(optionSelected).attr('data-year'))
-                    } else {
-                        yearChart($(optionSelected).attr('data-year'))
+                        monthChart($(optionSelected).attr('data-month'), $(optionSelected).attr('data-year'));
+                    }
+                    else {
+                        yearChart($(optionSelected).attr('data-year'));
                     }
 
                 });
@@ -103,7 +117,8 @@ function overlayCharts() {
                     yearChart(ausgaben[0].jahr);
                 }
             }
-        } else {
+        }
+        else {
             errorHandling(json);
         }
     });
@@ -111,15 +126,16 @@ function overlayCharts() {
 
 function overlayAddSelect(label, year, spendings, month) {
     if (spendings === undefined) {
-        $('#select').append($('<div>').addClass('select-element year').html(label).attr('data-year', year).click(function (e) {
+        $('#select').append($('<div>').addClass('select-element year').html(label).attr('data-year', year).click(function(e) {
             $('#select').children().removeClass('active');
             $(e.target).addClass('active');
             yearChart($(e.target).attr('data-year'));
         }));
         $('#select-mobile > select').append($('<optgroup>').attr('label', label));
         $('#select-mobile > select > optgroup[label="' + label + '"]').append($('<option>').html('Übersicht ' + label).attr('data-year', year));
-    } else {
-        $('#select').append($('<div>').addClass('select-element').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-month', month).attr('data-year', year).click(function (e) {
+    }
+    else {
+        $('#select').append($('<div>').addClass('select-element').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-month', month).attr('data-year', year).click(function(e) {
             $('#select').children().removeClass('active');
             $(e.target).addClass('active');
             monthChart($(e.target).attr('data-month'), $(e.target).attr('data-year'));
@@ -130,12 +146,15 @@ function overlayAddSelect(label, year, spendings, month) {
 
 function monthChart(month, year) {
     $('#stats > .chart').empty();
-    $.post('api.php', {action: 'get_overview_month', monat: month, jahr: year}).done(function (data) {
+    $.post('api.php', {
+        action: 'get_overview_month',
+        monat: month,
+        jahr: year
+    }).done(function(data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
                 var ausgaben = json.ausgaben;
-                var i = -1;
 
                 var data = [];
 
@@ -143,17 +162,18 @@ function monthChart(month, year) {
                     data[x] = [];
                     if (ausgaben[x].kategorie === null) {
                         data[x][0] = 'Ohne Kategorie';
-                    } else {
+                    }
+                    else {
                         data[x][0] = ausgaben[x].kategorie;
                     }
                     data[x][1] = parseFloat(ausgaben[x].preis);
                 }
 
                 var series = [{
-                        type: 'pie',
-                        name: 'Summe',
-                        data: data
-                    }];
+                    type: 'pie',
+                    name: 'Summe',
+                    data: data
+                }];
 
                 chart = new Highcharts.Chart({
                     chart: {
@@ -183,7 +203,8 @@ function monthChart(month, year) {
                     credits: false
                 });
             }
-        } else {
+        }
+        else {
             errorHandling(json);
         }
     });
@@ -191,7 +212,10 @@ function monthChart(month, year) {
 
 function yearChart(year) {
     $('#stats > .chart').empty();
-    $.post('api.php', {action: 'get_overview_year', jahr: year}).done(function (data) {
+    $.post('api.php', {
+        action: 'get_overview_year',
+        jahr: year
+    }).done(function(data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -204,9 +228,16 @@ function yearChart(year) {
                         kategorie = ausgaben[x].kategorie;
                         i++;
                         if (kategorie === null) {
-                            series[i] = {name: 'Ohne Kategorie', data: []};
-                        } else {
-                            series[i] = {name: kategorie, data: []};
+                            series[i] = {
+                                name: 'Ohne Kategorie',
+                                data: []
+                            };
+                        }
+                        else {
+                            series[i] = {
+                                name: kategorie,
+                                data: []
+                            };
                         }
                     }
                     series[i].data[ausgaben[x].monat - 1] = parseFloat(ausgaben[x].preis);
@@ -237,10 +268,10 @@ function yearChart(year) {
                         }
                     },
                     tooltip: {
-                        formatter: function () {
+                        formatter: function() {
                             return this.x + '<br/>' +
-                                    '<span style="color:' + this.series.color + '"> \u25CF </span>' + this.series.name + ': <b>' + convertPreisToComma(this.point.y) + ' €</b><br/>' +
-                                    'Summe: ' + convertPreisToComma(this.point.stackTotal) + ' €';
+                                '<span style="color:' + this.series.color + '"> ● </span>' + this.series.name + ': <b>' + convertPreisToComma(this.point.y) + ' €</b><br/>' +
+                                'Summe: ' + convertPreisToComma(this.point.stackTotal) + ' €';
                         }
                     },
                     plotOptions: {
@@ -252,7 +283,8 @@ function yearChart(year) {
                     credits: false
                 });
             }
-        } else {
+        }
+        else {
             errorHandling(json);
         }
     });
@@ -271,7 +303,8 @@ function processURL() {
         if (month !== null && month.length === 2 && month[1] >= 1 && month[1] <= 12) {
             if (year !== null && year.length === 2) {
                 datum.year(year[1]);
-            } else {
+            }
+            else {
                 if (month[1] - 1 > datum.month()) {
                     datum.subtract("year", 1);
                 }
@@ -280,7 +313,10 @@ function processURL() {
         }
         stats = location.contains("statistics");
     }
-    window.history.replaceState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
+    window.history.replaceState({
+        "year": datum.year(),
+        "month": datum.month()
+    }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
     holeDaten();
     if (stats) {
         showStatsView();
@@ -291,28 +327,38 @@ function errorHandling(json) {
     if (json['error'] === 'not_logged_in') {
         if (json['location']) {
             window.location = json['location'];
-        } else {
+        }
+        else {
             alert("Sie sind nicht eingeloggt");
         }
-    } else if (json['error'] === 'server') {
+    }
+    else if (json['error'] === 'server') {
         if (json['msg']) {
             alert(json['msg']);
-        } else {
+        }
+        else {
             alert("Unbekannter Server Fehler");
         }
-    } else if (json['error'] === 'action_missing') {
+    }
+    else if (json['error'] === 'action_missing') {
         if (json['msg']) {
             alert(json['msg']);
-        } else {
+        }
+        else {
             alert("Unbekannter Server Fehler");
         }
-    } else {
+    }
+    else {
         alert("Unbekannter Fehler");
     }
 }
 
 function holeDaten(callback, ...args) {
-    $.post('api.php', {action: 'get_month', month: (datum.month() + 1), year: datum.year()}).done(function (data) {
+    $.post('api.php', {
+        action: 'get_month',
+        month: (datum.month() + 1),
+        year: datum.year()
+    }).done(function(data) {
         json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json['jahr'] == datum.year() && json['monat'] == datum.month() + 1) {
@@ -323,7 +369,8 @@ function holeDaten(callback, ...args) {
                 $("#month").text(datum.format("MMMM YYYY"));
                 $('#loading-screen').remove();
             }
-        } else {
+        }
+        else {
             errorHandling(json);
         }
     });
@@ -341,26 +388,31 @@ function naechsterMonat() {
 
 function andererMonat(callback, ...args) {
     loadingScreen();
-    window.history.pushState({"year": datum.year(), "month": datum.month()}, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
+    window.history.pushState({
+        "year": datum.year(),
+        "month": datum.month()
+    }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
     holeDaten(callback, ...args);
 }
 
 function loadingScreen() {
-    $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'">\uE802</span> ' + datum.format("MMMM YYYY"));
+    $("#month").html('<span class="animate-spin" style="font-family: \'nsvb-symbol\'"></span> ' + datum.format("MMMM YYYY"));
     $(".ausgabe").remove();
     $('#empty').remove();
     if (!document.getElementById('loading-screen')) {
-        $('#ausgaben').append($('<div>').css({"background-color": "#ccc"}).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({"font-family": "nsvb-symbol", "font-size": "200%"}).addClass('loading').append($('<span>').addClass('animate-spin').text('\uE802')))));
+        $('#ausgaben').append($('<div>').css({
+            "background-color": "#ccc"
+        }).addClass('table').attr('id', 'loading-screen').append($('<div>').addClass('tr').append($('<div>').addClass('td').css({
+            "font-family": "nsvb-symbol",
+            "font-size": "200%"
+        }).addClass('loading').append($('<span>').addClass('animate-spin').text('')))));
         $('.loading').height($(window).height() - $('header').height() - $('footer').height() - $('#table-header').height() - 11);
     }
 }
 
 function datenAnzeigen() {
-    var spendingAmount = (Math.round(parseFloat((json['summeausgaben'].indexOf(".")) ? json['summeausgaben'].replace(".", ",") : json['summeausgaben'])) + "");
-    $("#spendings").text("Ausgaben " + spendingAmount + " €");
-
-    var earningAmount = (Math.round(parseFloat((json['summeeinnahmen'].indexOf(".")) ? json['summeeinnahmen'].replace(".", ",") : json['summeeinnahmen'])) + "");
-    $("#earnings").text("Einnahmen " + earningAmount + " €");
+    setSpendings(parseFloat(json['summeausgaben']));
+    setEarnings(parseFloat(json['summeeinnahmen']));
 
     if (currentView === "spendings" || currentView === "earnings") {
         $(".ausgabe").remove();
@@ -371,7 +423,8 @@ function datenAnzeigen() {
                 var element = createRow(currentView === "spendings" ? daten[x].idausgabe : daten[x].ideinnahme, dateToLocal(daten[x].datum), (daten[x].kategorie) ? daten[x].kategorie : "", daten[x].art, (daten[x].preis.indexOf(".")) ? daten[x].preis.replace(".", ",") : daten[x].preis, (daten[x].beschreibung) ? daten[x].beschreibung : "");
                 $("#ausgabenliste").append(element);
             }
-        } else {
+        }
+        else {
             showEmpty();
         }
     }
@@ -405,11 +458,14 @@ function removeEntry(e) {
     preis = preis.split(" ")[0];
     preis = convertPreisToPoint(preis);
 
-    $.post('api.php', {action: 'delete', idausgabe: ausgabenElement.getAttribute("data-id")}).done(function (data) {
+    $.post('api.php', {
+        action: 'delete',
+        idausgabe: ausgabenElement.getAttribute("data-id")
+    }).done(function(data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.deleted === 'true') {
-                $(ausgabenElement).on('transitionend', function () {
+                $(ausgabenElement).on('transitionend', function() {
                     document.getElementById("ausgabenliste").removeChild(ausgabenElement);
                 });
                 $(ausgabenElement).addClass('remove-animation');
@@ -420,7 +476,8 @@ function removeEntry(e) {
                     showEmpty();
                 }
             }
-        } else {
+        }
+        else {
             errorHandling(json);
         }
     });
@@ -428,13 +485,13 @@ function removeEntry(e) {
 
 //http://stackoverflow.com/a/6813294/1565646
 function isEmpty(el) {
-    return !$.trim(el.html())
+    return !$.trim(el.html());
 }
 
 function fehlerAnzeigen(error, id) {
     if (id !== undefined && id !== null) {
         if (error['datum'] !== undefined) {
-            $('.ausgabe[data-id=' + id + '] .td-datum').append($('<div>').addClass('error').text(error['datum'])/*.append($('<div>').addClass('error-diamond'))*/);
+            $('.ausgabe[data-id=' + id + '] .td-datum').append($('<div>').addClass('error').text(error['datum']) /*.append($('<div>').addClass('error-diamond'))*/ );
         }
         if (error['art'] !== undefined) {
             $('.ausgabe[data-id=' + id + '] .td-art').append($('<div>').addClass('error').text(error['art']));
@@ -442,9 +499,10 @@ function fehlerAnzeigen(error, id) {
         if (error['preis'] !== undefined) {
             $('.ausgabe[data-id=' + id + '] .td-preis').append($('<div>').addClass('error').text(error['preis']));
         }
-    } else {
+    }
+    else {
         if (error['datum'] !== undefined) {
-            $('#input .td-datum').append($('<div>').addClass('error').text(error['datum'])/*.append($('<div>').addClass('error-diamond'))*/);
+            $('#input .td-datum').append($('<div>').addClass('error').text(error['datum']) /*.append($('<div>').addClass('error-diamond'))*/ );
         }
         if (error['art'] !== undefined) {
             $('#input .td-art').append($('<div>').addClass('error').text(error['art']));
@@ -455,31 +513,34 @@ function fehlerAnzeigen(error, id) {
     }
 }
 
-function fehlerLöschen(id) {
+function deleteError(id) {
     if (id !== undefined && id !== null) {
         $('.ausgabe[data-id=' + id + '] .error').remove();
-    } else {
+    }
+    else {
         $('#input .error').remove();
     }
 }
 
-function ausgabenSpeichern() {
+function saveEntry() {
     var error = {};
     var showError = false;
 
-    fehlerLöschen();
+    deleteError();
 
-    var datumAusgabe = $('#input-datum').val();
-    if (datumAusgabe === undefined || datumAusgabe === "") {
+    var datumEntry = $('#input-datum').val();
+    if (datumEntry === undefined || datumEntry === "") {
         error['datum'] = "Datum fehlt";
         showError = true;
-    } else {
+    }
+    else {
         var datumDB = "";
-        if (datumAusgabe.indexOf(".") > 0) {
-            datumDB = localToDate(datumAusgabe);
-        } else {
-            datumDB = datumAusgabe;
-            datumAusgabe = dateToLocal(datumAusgabe);
+        if (datumEntry.indexOf(".") > 0) {
+            datumDB = localToDate(datumEntry);
+        }
+        else {
+            datumDB = datumEntry;
+            datumEntry = dateToLocal(datumEntry);
         }
     }
 
@@ -495,12 +556,15 @@ function ausgabenSpeichern() {
     if (preis === undefined || preis === "") {
         error['preis'] = "Preis fehlt";
         showError = true;
-    } else {
+    }
+    else {
         var preisDB = 0;
+        //TODO: ???? 
         preis = convertPreisToComma(preis);
         if (preis.indexOf(",") > 0) {
             preisDB = preis.replace(",", ".");
-        } else {
+        }
+        else {
             preisDB = preis;
             if (preis.indexOf(".") > 0) {
                 preisDB = preis;
@@ -512,15 +576,16 @@ function ausgabenSpeichern() {
 
     if (showError) {
         fehlerAnzeigen(error);
-    } else {
-        var ausgabe = {};
-        ausgabe.datumDB = datumDB;
-        ausgabe.datumAusgabe = datumAusgabe;
-        ausgabe.kategorie = kategorie;
-        ausgabe.art = art;
-        ausgabe.preisDB = preisDB;
-        ausgabe.preis = preis;
-        ausgabe.beschreibung = beschreibung;
+    }
+    else {
+        var entry = {};
+        entry.datumDB = datumDB;
+        entry.datum = datumEntry;
+        entry.kategorie = kategorie;
+        entry.art = art;
+        entry.preisDB = preisDB;
+        entry.preis = preis;
+        entry.beschreibung = beschreibung;
 
         //Falls neue Ausgabe nicht im aktuell gewählten Monat ist wird der dazugehörige Monat geladen
         var datumM;
@@ -534,44 +599,52 @@ function ausgabenSpeichern() {
         if (datum.month() !== datumM.month() || datum.year() !== datumM.year()) {
             datum.month(datumM.month());
             datum.year(datumM.year());
-            andererMonat(ausgabenSpeichernRequest, ausgabe);
-        } else {
-            ausgabenSpeichernRequest(ausgabe);
+            andererMonat(saveEntryRequest, entry);
+        }
+        else {
+            saveEntryRequest(entry);
         }
     }
 }
 
-function ausgabenSpeichernRequest(ausgabe) {
+function saveEntryRequest(entry) {
     var params = {
-        datum: ausgabe.datumDB,
-        art: encodeURIComponent(ausgabe.art),
-        preis: ausgabe.preisDB,
-        action: 'add'
+        datum: entry.datumDB,
+        art: encodeURIComponent(entry.art),
+        preis: entry.preisDB,
+        action: 'add',
+        entrytype: currentView,
     };
-    if (ausgabe.kategorie) {
-        params.kategorie = encodeURIComponent(ausgabe.kategorie);
+    if (entry.kategorie) {
+        params.kategorie = encodeURIComponent(entry.kategorie);
     }
-    if (ausgabe.beschreibung) {
-        params.beschreibung = encodeURIComponent(ausgabe.beschreibung);
+    if (entry.beschreibung) {
+        params.beschreibung = encodeURIComponent(entry.beschreibung);
     }
 
-    $.post("api.php", params).done(function (result) {
+    $.post("api.php", params).done(function(result) {
         var json = JSON.parse(result);
         if (json['error'] === undefined) {
             //remove empty view if visible
             $('#empty').remove();
-            var element = createRow(json['id'], ausgabe.datumAusgabe, ausgabe.kategorie, ausgabe.art, ausgabe.preis, ausgabe.beschreibung);
+            var element = createRow(json['id'], entry.datum, entry.kategorie, entry.art, entry.preis, entry.beschreibung);
             element.className += " new";
             //TODO: insert new Ausgabe at the appropriate position
             document.getElementById("ausgabenliste").appendChild(element);
             $('.ausgabe[data-id=' + json['id'] + ']')[0].scrollIntoView();
 
-            addSpendings(ausgabe.preisDB);
+            if (json['entrytype'] === 'earnings') {
+                addEarnings(entry.preisDB);
+            }
+            else {
+                addSpendings(entry.preisDB);
+            }
 
             clearInput();
 
-            ausgabe = {};
-        } else {
+            entry = {};
+        }
+        else {
             errorHandling(json);
         }
     });
@@ -586,7 +659,25 @@ function clearInput() {
  * @param float preis Preis der hinzugefügt werden soll, negative Werte zum abziehen
  */
 function addSpendings(preis) {
-    $('#spendings').html(convertPreisToComma((convertPreisToPoint($('#spendings').html().split(' ')[0]) + parseFloat(preis)).toFixed(2)) + " €");
+    var amount = parseFloat(document.querySelector("#spendings").getAttribute("data-amount"));
+    amount += parseFloat(preis); //TODO why parseFloat? 
+    setSpendings(amount);
+}
+
+function setSpendings(amount) {
+    $('#spendings').html("Ausgaben " + Math.round(amount) + " €");
+    document.querySelector("#spendings").setAttribute("data-amount", amount);
+}
+
+function addEarnings(preis) {
+    var amount = parseFloat(document.querySelector("#earnings").getAttribute("data-amount"));
+    amount += parseFloat(preis); //TODO why parseFloat? 
+    setEarnings(amount);
+}
+
+function setEarnings(amount) {
+    $('#earnings').html("Einnahmen " + Math.round(amount) + " €");
+    document.querySelector("#earnings").setAttribute("data-amount", amount);
 }
 
 /**
@@ -663,7 +754,8 @@ function editEntry(e) {
                 preis = convertPreisToPoint(preis);
                 ausgabenElement.childNodes[i].setAttribute('data-input', preis);
                 ausgabenElement.childNodes[i].innerHTML = '<input size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01" value="' + preis + '"><span>&euro;</span>';
-            } else {
+            }
+            else {
                 var input = ausgabenElement.childNodes[i].innerHTML;
                 ausgabenElement.childNodes[i].setAttribute('data-input', input);
                 ausgabenElement.childNodes[i].innerHTML = '<input type="text" value="' + input + '">';
@@ -690,7 +782,8 @@ function cancelEditEntry(e) {
             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
                 $(ausgabenElement.childNodes[i]).children('span').remove();
                 $(ausgabenElement.childNodes[i]).html(convertPreisToComma(text) + ' €');
-            } else {
+            }
+            else {
                 $(ausgabenElement.childNodes[i]).html(text);
             }
         }
@@ -710,7 +803,7 @@ function updateEntry(e) {
 
     var ausgabenElement = parent.parentNode;
     var idausgabe = $(ausgabenElement).attr('data-id');
-    fehlerLöschen(idausgabe);
+    deleteError(idausgabe);
 
     var params = {};
 
@@ -719,11 +812,13 @@ function updateEntry(e) {
         if (datumAusgabe === undefined || datumAusgabe === "") {
             error['datum'] = "Datum fehlt";
             showError = true;
-        } else {
+        }
+        else {
             var datumDB = "";
             if (datumAusgabe.indexOf(".") > 0) {
                 datumDB = localToDate(datumAusgabe);
-            } else {
+            }
+            else {
                 datumDB = datumAusgabe;
                 datumAusgabe = dateToLocal(datumAusgabe);
             }
@@ -740,7 +835,8 @@ function updateEntry(e) {
         if (art === undefined || art === "") {
             error['art'] = "Art der Ausgabe fehlt";
             showError = true;
-        } else {
+        }
+        else {
             params.art = encodeURIComponent(art);
         }
     }
@@ -750,11 +846,13 @@ function updateEntry(e) {
         if (preis === undefined || preis === "") {
             error['preis'] = "Preis fehlt";
             showError = true;
-        } else {
+        }
+        else {
             var preisDB = 0;
             if (preis.indexOf(",") > 0) {
                 preisDB = preis.replace(",", ".");
-            } else {
+            }
+            else {
                 preisDB = preis;
             }
             params.preis = preisDB;
@@ -772,8 +870,9 @@ function updateEntry(e) {
     if (showError) {
         fehlerAnzeigen(error, idausgabe);
         reAddEditControls(ausgabenElement);
-    } else {
-        $.post("api.php", params).done(function (result) {
+    }
+    else {
+        $.post("api.php", params).done(function(result) {
             var json = JSON.parse(result);
             if (json['error'] === undefined) {
                 var sameMonth = true;
@@ -803,7 +902,8 @@ function updateEntry(e) {
                             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
                                 $(ausgabenElement.childNodes[i]).children('span').remove();
                                 $(ausgabenElement.childNodes[i]).html(convertPreisToComma(text) + ' €');
-                            } else {
+                            }
+                            else {
                                 $(ausgabenElement.childNodes[i]).html(text);
                             }
                         }
@@ -820,7 +920,8 @@ function updateEntry(e) {
 
                     $(ausgabenElement).children('.td-optionen').children().css('display', '');
                 }
-            } else {
+            }
+            else {
                 reAddEditControls(ausgabenElement);
                 errorHandling(json);
             }
@@ -855,9 +956,9 @@ function convertPreisToComma(preis) {
         if (preis.split(",")[1].length === 1) {
             preis += '0';
         }
-    } else {
+    }
+    else {
         preis += ',00';
     }
     return preis;
 }
-
