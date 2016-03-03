@@ -28,6 +28,7 @@ $(document).ready(function() {
         $("#earnings").addClass("active");
         switchView("earnings");
     });
+    $("#input-datum").change(prettifyDate);
     $(window).on('popstate', back);
     processURL();
 });
@@ -943,6 +944,23 @@ function reAddEditControls(ausgabenElement) {
     $(ausgabenElement).children('.td-optionen').append(update, cancel);
 }
 
+function prettifyDate() {
+    var inDate = $("#input-datum").val();
+    if (inDate.indexOf(".") > 0 && inDate.length >= 3) {
+        if(occurrences(inDate, ".") === 1){
+            var outDate = moment(inDate, "D.M").year(moment().year()).format("DD.MM.YYYY");
+            $("#input-datum").val(outDate);
+        } else if(occurrences(inDate, ".") === 2){
+            var tempDate = moment(inDate, "D.M.YYYY");
+            if(tempDate.year() == 0){
+                tempDate.year(moment().year());
+            }
+            var outDate = tempDate.format("DD.MM.YYYY");
+            $("#input-datum").val(outDate);
+        }
+    }
+}
+
 function convertPreisToPoint(preis) {
     preis += '';
     preis = preis.replace(",", ".");
@@ -961,4 +979,30 @@ function convertPreisToComma(preis) {
         preis += ',00';
     }
     return preis;
+}
+
+/** Function count the occurrences of substring in a string;
+ * @param {String} string   Required. The string;
+ * @param {String} subString    Required. The string to search for;
+ * @param {Boolean} allowOverlapping    Optional. Default: false;
+ * @author Vitim.us http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string/7924240#7924240
+ */
+function occurrences(string, subString, allowOverlapping) {
+
+    string += "";
+    subString += "";
+    if (subString.length <= 0) return (string.length + 1);
+
+    var n = 0,
+        pos = 0,
+        step = allowOverlapping ? 1 : subString.length;
+
+    while (true) {
+        pos = string.indexOf(subString, pos);
+        if (pos >= 0) {
+            ++n;
+            pos += step;
+        } else break;
+    }
+    return n;
 }
