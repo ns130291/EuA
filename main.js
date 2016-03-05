@@ -451,9 +451,22 @@ function showEmpty() {
     $("#ausgaben").append(empty);
 }
 
+function editControlShowSpinner(editControl) {
+    hideEditControls(editControl);
+    $(editControl).append($('<div/>').addClass('change animate-spin icon-spin5'));
+}
+
+function hideEditControls(editControl) {
+    for (var i = 0; i < editControl.childNodes.length; i++) {
+        editControl.childNodes[i].style.display = "none";
+    }
+}
+
 function removeEntry(e) {
     var el = e.target;
     var ausgabenElement = el.parentNode.parentNode;
+
+    editControlShowSpinner(el.parentNode);
 
     var preis = $(ausgabenElement).children(".preis").html();
     preis = preis.split(" ")[0];
@@ -732,9 +745,7 @@ function editEntry(e) {
     var el = e.target;
     var ausgabenElement = el.parentNode.parentNode;
 
-    for (var i = 0; i < el.parentNode.childNodes.length; i++) {
-        el.parentNode.childNodes[i].style.display = "none";
-    }
+    hideEditControls(el.parentNode);
 
     var update = document.createElement("div");
     update.addEventListener("click", updateEntry, "false");
@@ -771,9 +782,7 @@ function cancelEditEntry(e) {
     parent.removeChild(parent.getElementsByClassName("update")[0]);
     parent.removeChild(parent.getElementsByClassName("cancel")[0]);
 
-    for (var i = 0; i < parent.childNodes.length; i++) {
-        parent.childNodes[i].style.display = "";
-    }
+    reAddEditControls(parent.parentNode);
 
     var ausgabenElement = parent.parentNode;
     for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
@@ -800,7 +809,7 @@ function updateEntry(e) {
     parent.removeChild(parent.getElementsByClassName("update")[0]);
     parent.removeChild(parent.getElementsByClassName("cancel")[0]);
 
-    $(parent).append($('<div/>').addClass('change animate-spin icon-spin5'));
+    editControlShowSpinner(parent);
 
     var ausgabenElement = parent.parentNode;
     var idausgabe = $(ausgabenElement).attr('data-id');
@@ -917,9 +926,7 @@ function updateEntry(e) {
                         addSpendings(parseFloat(change));
                     }
 
-                    $(ausgabenElement).children('.td-optionen').children('.change').remove();
-
-                    $(ausgabenElement).children('.td-optionen').children().css('display', '');
+                    reAddEditControls(ausgabenElement);
                 }
             }
             else {
@@ -932,27 +939,19 @@ function updateEntry(e) {
 
 function reAddEditControls(ausgabenElement) {
     $(ausgabenElement).children('.td-optionen').children('.change').remove();
-
-    var update = document.createElement("div");
-    update.addEventListener("click", updateEntry, "false");
-    update.className = "update icon-ok";
-
-    var cancel = document.createElement("div");
-    cancel.addEventListener("click", cancelEditEntry, "false");
-    cancel.className = "cancel icon-cancel";
-
-    $(ausgabenElement).children('.td-optionen').append(update, cancel);
+    $(ausgabenElement).children('.td-optionen').children().css('display', '');
 }
 
 function prettifyDate() {
     var inDate = $("#input-datum").val();
     if (inDate.indexOf(".") > 0 && inDate.length >= 3) {
-        if(occurrences(inDate, ".") === 1){
+        if (occurrences(inDate, ".") === 1) {
             var outDate = moment(inDate, "D.M").year(moment().year()).format("DD.MM.YYYY");
             $("#input-datum").val(outDate);
-        } else if(occurrences(inDate, ".") === 2){
+        }
+        else if (occurrences(inDate, ".") === 2) {
             var tempDate = moment(inDate, "D.M.YYYY");
-            if(tempDate.year() == 0){
+            if (tempDate.year() == 0) {
                 tempDate.year(moment().year());
             }
             var outDate = tempDate.format("DD.MM.YYYY");
@@ -1002,7 +1001,8 @@ function occurrences(string, subString, allowOverlapping) {
         if (pos >= 0) {
             ++n;
             pos += step;
-        } else break;
+        }
+        else break;
     }
     return n;
 }
