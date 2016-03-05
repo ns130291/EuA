@@ -38,6 +38,7 @@ $ausgaben = json_encode($rows);
 //$result->close(); // Did not work; closing and reopening link instead...
 $mysqli->close();
 $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+$mysqli->set_charset('utf8');
 
 $result = $mysqli->query(sprintf('CALL eua.summeAusgabenMonat("%s","%s",%s);', $startDate, $endDate, $_SESSION['defaultKonto']));
 
@@ -55,6 +56,7 @@ $summeAusgaben = $row[0];
 // Einnahmen
 $mysqli->close();
 $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+$mysqli->set_charset('utf8');
 
 $result = $mysqli->query(sprintf('CALL eua.holeEinnahmenMonat("%s","%s",%s);', $startDate, $endDate, $_SESSION['defaultKonto']));
 
@@ -73,6 +75,7 @@ $einnahmen = json_encode($rows);
 
 $mysqli->close();
 $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+$mysqli->set_charset('utf8');
 
 $result = $mysqli->query(sprintf('CALL eua.summeEinnahmenMonat("%s","%s",%s);', $startDate, $endDate, $_SESSION['defaultKonto']));
 
