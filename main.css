@@ -17,11 +17,31 @@ input[type=number] {
     -moz-appearance:textfield;
 }
 
+@font-face {
+  font-family: 'Gudea';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Gudea'), url(fonts/gudea/Gudea.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+}
+
+@font-face {
+  font-family: 'Gudea';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Gudea Bold'), local('Gudea-Bold'), url(fonts/gudea/Gudea-Bold.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+}
+
 
 html, body{
     height: 100%;
     margin: 0;
+}
+
+body, input{
     font-size: 16px;
+    font-family: 'Gudea', sans-serif;
 }
 
 #spacertop{
@@ -282,23 +302,21 @@ content{
     overflow-y: hidden;
 }
 
-#ausgaben{
+#ausgabenliste{
     overflow-y: auto;
     flex-grow: 1;
 }
-#ausgabenliste{
-
-}
 
 .ausgabe{
-    -webkit-transition: height 2s ease;
-    transition: max-height  2s ease;
+    -webkit-transition: height 1.5s ease;
+    transition: max-height  1.5s ease, opacity 1.5s linear;
     max-height: 50px;
 }
 
 .remove-animation{
     max-height: 0;
     overflow-y: hidden;
+    opacity: 0;
 }
 
 #einnahmen{
@@ -318,48 +336,37 @@ content{
     cursor: pointer;
 }
 
-.table {
-    display:table;
-    width: 100%;
-    table-layout: fixed;
+.th{
+    font-weight: bold;
+    border-bottom: 2px solid darkgray;
 }
-.tr {
-    display:table-row;
+.tr{
+    border-bottom: 1px solid darkgray;
 }
+.tr, .th {
+    display:flex;
+}
+
 .td {
-    display:table-cell;
     vertical-align: top;
-    border-top: 1px solid darkgray;
     padding-top: 5px;
     padding-bottom: 5px;
     padding-left: 5px;
     overflow-x: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    position: relative;
 }
-.td textarea{
-    height: 1.2em;
-    margin: 0;
-    padding: 1px 0;
+.td-art {
+    flex-grow: 1;
 }
-.td textarea, .td input{
+.td input{
     border: none;
-    width: 100%;
+    width: calc(100% - 2px); /* fixes div being tabbable because of overflow-x: hidden of .td, cf. https://bugzilla.mozilla.org/show_bug.cgi?id=616594#c42 */
 }
-
 .td input.preis{
     width: 80%;
 }
-.th{
-    font-weight: bold;
-}
-.th .td{
-    border-bottom: 1px solid darkgray;
-}
-.tr:first-child{
-    border: none;
-}
+
 .preis{
     text-align: right;
 }
@@ -407,6 +414,10 @@ content{
     width: 30px;
 }
 
+#input-form{
+    border-top: 2px solid darkgray;
+}
+
 .loading{
     vertical-align: middle;
     text-align: center;
@@ -420,10 +431,6 @@ content{
     /* Rules below not implemented in browsers yet */
     -o-user-select: none;
     user-select: none;
-}
-
-#input .td{
-    position: relative;
 }
 
 .error:after{

@@ -26,6 +26,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
         <script type="text/javascript" src="main.js"></script>
         <script type="text/javascript" src="js/dummyPic.js"></script>
         <script type="text/javascript" src="js/highcharts-custom.js"></script>
+        <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet' type='text/css'>
     </head>
     <body>
         <div id="content">
@@ -41,54 +42,48 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                 </div>
             </header>
             <section id="section-ausgabe">
-                <section id="table-header" class="table">
-                    <div id="ausgabenliste-header" class="tr th">
+                <div id="ausgabenliste-header" class="th">
+                    <div class="td td-datum">
+                        Datum
+                    </div>
+                    <div class="td td-kategorie">
+                        Kategorie
+                    </div>
+                    <div class="td td-art">
+                        Art
+                    </div>
+                    <div class="td td-preis">
+                        Preis
+                    </div>
+                    <div class="td td-beschreibung">
+                        Beschreibung
+                    </div>
+                    <div class="td td-optionen">
+                    </div>
+                </div>
+                <div id="ausgabenliste"></div>
+                <form id="input-form">
+                    <div id="input" class="tr">
                         <div class="td td-datum">
-                            Datum
+                            <input id="input-datum" placeholder="Datum" size="10" type="date">
                         </div>
                         <div class="td td-kategorie">
-                            Kategorie
+                            <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text">
                         </div>
                         <div class="td td-art">
-                            Art
+                            <input id="input-art" placeholder="Edeka, Döner, etc." type="text">
                         </div>
                         <div class="td td-preis">
-                            Preis
+                            <input id="input-preis" size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
+                            <span>&euro;</span>
                         </div>
                         <div class="td td-beschreibung">
-                            Beschreibung
+                            <input id="input-beschreibung" placeholder="mit Vanessa, etc." type="text">
                         </div>
                         <div class="td td-optionen">
+                            <button id="plusbutton" type="submit" class="plus icon-plus"></button>
                         </div>
                     </div>
-                </section>
-                <section id="ausgaben">
-                    <div id="ausgabenliste" class="table"></div>
-                </section>
-                <form id="input-form">
-                    <footer class="table" style="width: 100%;">
-                        <div id="input" class="tr">
-                            <div class="td td-datum">
-                                <input id="input-datum" placeholder="Datum" size="10" type="date">
-                            </div>
-                            <div class="td td-kategorie">
-                                <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text">
-                            </div>
-                            <div class="td td-art">
-                                <input id="input-art" placeholder="Edeka, Döner, etc." type="text">
-                            </div>
-                            <div class="td td-preis">
-                                <input id="input-preis" size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
-                                <span>&euro;</span>
-                            </div>
-                            <div class="td td-beschreibung">
-                                <input id="input-beschreibung" placeholder="mit Vanessa, etc." type="text">
-                            </div>
-                            <div class="td td-optionen">
-                                <button id="plusbutton" type="submit" class="plus icon-plus"></button>
-                            </div>
-                        </div>
-                    </footer>
                 </form>
             </section>
         </div>

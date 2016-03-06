@@ -1,10 +1,16 @@
 "use strict";
 
+if (!String.prototype.includes) {
+    String.prototype.includes = function(s) {
+        return this.indexOf(s) > -1
+    }
+}
+
 /*global moment*/
 /*global Highcharts*/
 
 var json = null;
-moment.lang("de");
+moment.locale("de");
 var datum = moment();
 var chart = null;
 var currentView = "spendings";
@@ -312,7 +318,7 @@ function processURL() {
             }
             datum.month(month[1] - 1);
         }
-        stats = location.contains("statistics");
+        stats = location.includes("statistics");
     }
     window.history.replaceState({
         "year": datum.year(),
@@ -713,6 +719,10 @@ function localToDate(date) {
 }
 
 function createRow(id, datum, kategorie, art, preis, beschreibung) {
+    
+    //var row = $("<div/>").addClass("ausgabe").attr("data-id", id);
+    //var datum = $("<div/>").addClass()
+    
     var element = document.createElement("div");
     element.setAttribute("data-id", id);
     element.className = "tr ausgabe";
