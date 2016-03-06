@@ -26,7 +26,6 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
         <script type="text/javascript" src="main.js"></script>
         <script type="text/javascript" src="js/dummyPic.js"></script>
         <script type="text/javascript" src="js/highcharts-custom.js"></script>
-        <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet' type='text/css'>
     </head>
     <body>
         <div id="content">

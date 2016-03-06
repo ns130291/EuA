@@ -1,13 +1,27 @@
 "use strict";
 
+/*global moment*/
+/*global Highcharts*/
+
 if (!String.prototype.includes) {
     String.prototype.includes = function(s) {
         return this.indexOf(s) > -1
     }
 }
 
-/*global moment*/
-/*global Highcharts*/
+/* http://stackoverflow.com/a/16771535/1565646 */
+var getScrollbarWidth = function() {
+  var div, width = getScrollbarWidth.width;
+  if (width === undefined) {
+    div = document.createElement('div');
+    div.innerHTML = '<div style="width:50px;height:50px;position:absolute;left:-50px;top:-50px;overflow:auto;"><div style="width:1px;height:100px;"></div></div>';
+    div = div.firstChild;
+    document.body.appendChild(div);
+    width = getScrollbarWidth.width = div.offsetWidth - div.clientWidth;
+    document.body.removeChild(div);
+  }
+  return width;
+};
 
 var json = null;
 moment.locale("de");
@@ -35,6 +49,9 @@ $(document).ready(function() {
         switchView("earnings");
     });
     $("#input-datum").change(prettifyDate);
+    var scrollbarWidth = getScrollbarWidth();
+    $("#ausgabenliste-header").css("padding-right", scrollbarWidth);
+    $("#input").css("padding-right", scrollbarWidth);
     $(window).on('popstate', back);
     processURL();
 });
@@ -769,13 +786,15 @@ function editEntry(e) {
     el.parentNode.appendChild(cancel);
 
     for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
-        if (ausgabenElement.childNodes[i].className.contains("td")) {
+        console.log(ausgabenElement.childNodes[i]);
+        console.log(ausgabenElement.childNodes[i].className);
+        if (ausgabenElement.childNodes[i].className.includes("td")) {
             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
                 //Preis von €-Zeichen trennen
                 var preis = ausgabenElement.childNodes[i].innerHTML.split(' ')[0];
                 preis = convertPreisToPoint(preis);
                 ausgabenElement.childNodes[i].setAttribute('data-input', preis);
-                ausgabenElement.childNodes[i].innerHTML = '<input size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01" value="' + preis + '"><span>&euro;</span>';
+                ausgabenElement.childNodes[i].innerHTML = '<input size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01" value="' + preis + '"><span class="input-suffix">&euro;</span>';
             }
             else {
                 var input = ausgabenElement.childNodes[i].innerHTML;
@@ -784,6 +803,7 @@ function editEntry(e) {
             }
         }
     }
+    ausgabenElement.classList.add("tr-edit");
 }
 
 function cancelEditEntry(e) {
@@ -796,7 +816,7 @@ function cancelEditEntry(e) {
 
     var ausgabenElement = parent.parentNode;
     for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
-        if (ausgabenElement.childNodes[i].className.contains("td")) {
+        if (ausgabenElement.childNodes[i].className.includes("td")) {
             var text = ausgabenElement.childNodes[i].getAttribute('data-input');
             $(ausgabenElement.childNodes[i]).children('input').remove();
             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
@@ -916,7 +936,7 @@ function updateEntry(e) {
 
                 if (sameMonth) {
                     for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
-                        if (ausgabenElement.childNodes[i].className.contains("td")) {
+                        if (ausgabenElement.childNodes[i].className.includes("td")) {
                             var text = $(ausgabenElement.childNodes[i]).children('input').val();
                             $(ausgabenElement.childNodes[i]).children('input').remove();
                             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
@@ -950,6 +970,7 @@ function updateEntry(e) {
 function reAddEditControls(ausgabenElement) {
     $(ausgabenElement).children('.td-optionen').children('.change').remove();
     $(ausgabenElement).children('.td-optionen').children().css('display', '');
+    ausgabenElement.classList.remove("tr-edit");
 }
 
 function prettifyDate() {
