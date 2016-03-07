@@ -387,6 +387,7 @@ content {
     overflow-x: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    line-height: 21px;
 }
 
 .td-art {

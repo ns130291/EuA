@@ -11,16 +11,16 @@ if (!String.prototype.includes) {
 
 /* http://stackoverflow.com/a/16771535/1565646 */
 var getScrollbarWidth = function() {
-  var div, width = getScrollbarWidth.width;
-  if (width === undefined) {
-    div = document.createElement('div');
-    div.innerHTML = '<div style="width:50px;height:50px;position:absolute;left:-50px;top:-50px;overflow:auto;"><div style="width:1px;height:100px;"></div></div>';
-    div = div.firstChild;
-    document.body.appendChild(div);
-    width = getScrollbarWidth.width = div.offsetWidth - div.clientWidth;
-    document.body.removeChild(div);
-  }
-  return width;
+    var div, width = getScrollbarWidth.width;
+    if (width === undefined) {
+        div = document.createElement('div');
+        div.innerHTML = '<div style="width:50px;height:50px;position:absolute;left:-50px;top:-50px;overflow:auto;"><div style="width:1px;height:100px;"></div></div>';
+        div = div.firstChild;
+        document.body.appendChild(div);
+        width = getScrollbarWidth.width = div.offsetWidth - div.clientWidth;
+        document.body.removeChild(div);
+    }
+    return width;
 };
 
 var json = null;
@@ -736,10 +736,10 @@ function localToDate(date) {
 }
 
 function createRow(id, datum, kategorie, art, preis, beschreibung) {
-    
+
     //var row = $("<div/>").addClass("ausgabe").attr("data-id", id);
     //var datum = $("<div/>").addClass()
-    
+
     var element = document.createElement("div");
     element.setAttribute("data-id", id);
     element.className = "tr ausgabe";
@@ -786,8 +786,6 @@ function editEntry(e) {
     el.parentNode.appendChild(cancel);
 
     for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
-        console.log(ausgabenElement.childNodes[i]);
-        console.log(ausgabenElement.childNodes[i].className);
         if (ausgabenElement.childNodes[i].className.includes("td")) {
             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
                 //Preis von €-Zeichen trennen
