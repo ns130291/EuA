@@ -739,29 +739,20 @@ function createRow(id, datum, kategorie, art, preis, beschreibung) {
 
     //var row = $("<div/>").addClass("ausgabe").attr("data-id", id);
     //var datum = $("<div/>").addClass()
+    
+    var html = `
+<div class="td td-datum">${datum}</div>
+<div class="td td-kategorie">${kategorie}</div>
+<div class="td td-art">${art}</div>
+<div class="preis td td-preis">${preis} &euro;</div>
+<div class="td td-beschreibung">${beschreibung}</div>
+<div class="td td-optionen">
+    <div class="edit icon-pencil"></div><div class="remove icon-trash"></div>
+</div>`;
 
     var element = document.createElement("div");
     element.setAttribute("data-id", id);
     element.className = "tr ausgabe";
-    var html = '<div class="td td-datum">';
-    html += datum;
-    html += '</div>';
-    html += '<div class="td td-kategorie">';
-    html += kategorie;
-    html += '</div>';
-    html += '<div class="td td-art">';
-    html += art;
-    html += '</div>';
-    html += '<div class="preis td td-preis">';
-    html += preis + ' &euro;';
-    html += '</div>';
-    html += '<div class="td td-beschreibung">';
-    html += beschreibung;
-    html += '</div>';
-    html += '<div class="td td-optionen">';
-    html += '<div class="edit icon-pencil"></div>';
-    html += '<div class="remove icon-trash"></div>';
-    html += '</div>';
     element.innerHTML = html;
     element.getElementsByClassName("remove")[0].addEventListener("click", removeEntry, false);
     element.getElementsByClassName("edit")[0].addEventListener("click", editEntry, false);
