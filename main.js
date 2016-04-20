@@ -2,6 +2,7 @@
 
 /*global moment*/
 /*global Highcharts*/
+/*global $*/
 
 if (!String.prototype.includes) {
     String.prototype.includes = function(s) {
@@ -28,8 +29,10 @@ moment.locale("de");
 var datum = moment();
 var chart = null;
 var currentView = "spendings";
+var mainLoaded = false;
 
 $(document).ready(function() {
+    mainLoaded = true;
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#switch-to-stats").click(showStatsView);
@@ -330,7 +333,7 @@ function processURL() {
             }
             else {
                 if (month[1] - 1 > datum.month()) {
-                    datum.subtract("year", 1);
+                    datum.subtract(1, "year");
                 }
             }
             datum.month(month[1] - 1);
@@ -341,10 +344,19 @@ function processURL() {
         "year": datum.year(),
         "month": datum.month()
     }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1));
-    holeDaten();
+
+    if (loadingDone === true) {
+        showEntries();
+        console.log("preload already finished");
+    }
+    else if (loadingDone === "error") {
+        holeDaten();
+        console.log("preload FAILED");
+    }
     if (stats) {
         showStatsView();
     }
+    console.log("END processURL");
 }
 
 function errorHandling(json) {
@@ -385,14 +397,7 @@ function holeDaten(callback, ...args) {
     }).done(function(data) {
         json = JSON.parse(data);
         if (json['error'] === undefined) {
-            if (json['jahr'] == datum.year() && json['monat'] == datum.month() + 1) {
-                datenAnzeigen();
-                if (callback !== undefined) {
-                    callback(...args);
-                }
-                $("#month").text(datum.format("MMMM YYYY"));
-                $('#loading-screen').remove();
-            }
+            showEntries(callback, ...args);
         }
         else {
             errorHandling(json);
@@ -400,13 +405,24 @@ function holeDaten(callback, ...args) {
     });
 }
 
+function showEntries(callback, ...args) {
+    if (json['jahr'] == datum.year() && json['monat'] == datum.month() + 1) {
+        datenAnzeigen();
+        if (callback !== undefined) {
+            callback(...args);
+        }
+        $("#month").text(datum.format("MMMM YYYY"));
+        $('#loading-screen').remove();
+    }
+}
+
 function vorherigerMonat() {
-    datum.subtract("month", 1);
+    datum.subtract(1, "month");
     andererMonat();
 }
 
 function naechsterMonat() {
-    datum.add("month", 1);
+    datum.add(1, "month");
     andererMonat();
 }
 
@@ -739,7 +755,7 @@ function createRow(id, datum, kategorie, art, preis, beschreibung) {
 
     //var row = $("<div/>").addClass("ausgabe").attr("data-id", id);
     //var datum = $("<div/>").addClass()
-    
+
     var html = `
 <div class="td td-datum">${datum}</div>
 <div class="td td-kategorie">${kategorie}</div>
@@ -963,18 +979,28 @@ function reAddEditControls(ausgabenElement) {
 }
 
 function prettifyDate() {
-    var inDate = $("#input-datum").val();
-    if (inDate.indexOf(".") > 0 && inDate.length >= 3) {
-        if (occurrences(inDate, ".") === 1) {
-            var outDate = moment(inDate, "D.M").year(moment().year()).format("DD.MM.YYYY");
+    let inDate = $("#input-datum").val();
+    let splitChar;
+    if (inDate.indexOf(".") > 0 && inDate.indexOf(",") === -1) {
+        splitChar = ".";
+    }
+    else if (inDate.indexOf(",") > 0 && inDate.indexOf(".") === -1) {
+        splitChar = ",";
+    }
+    else {
+        return;
+    }
+    if (inDate.length >= 3) {
+        if (occurrences(inDate, splitChar) === 1) {
+            let outDate = moment(inDate, "D" + splitChar + "M").year(moment().year()).format("DD.MM.YYYY");
             $("#input-datum").val(outDate);
         }
-        else if (occurrences(inDate, ".") === 2) {
-            var tempDate = moment(inDate, "D.M.YYYY");
+        else if (occurrences(inDate, splitChar) === 2) {
+            let tempDate = moment(inDate, "D" + splitChar + "M" + splitChar + "YYYY");
             if (tempDate.year() == 0) {
                 tempDate.year(moment().year());
             }
-            var outDate = tempDate.format("DD.MM.YYYY");
+            let outDate = tempDate.format("DD.MM.YYYY");
             $("#input-datum").val(outDate);
         }
     }

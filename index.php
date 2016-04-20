@@ -19,6 +19,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
         <link rel="stylesheet" href="main.css">
         <link rel="stylesheet" href="fontello/css/nsvb-symbol.css">
         <link rel="stylesheet" href="fontello/css/animation.css">
+        <script type="text/javascript" src="preload.js"></script>
         <script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
         <script type="text/javascript" src="js/moment.min.js"></script>
         <script type="text/javascript" src="js/de.js"></script>
