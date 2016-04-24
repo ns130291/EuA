@@ -24,7 +24,7 @@ var getScrollbarWidth = function() {
     return width;
 };
 
-var json = null;
+var json;
 moment.locale("de");
 var datum = moment();
 var chart = null;
@@ -496,8 +496,11 @@ function editControlShowSpinner(editControl) {
 }
 
 function hideEditControls(editControl) {
+    console.log(editControl.childNodes);
     for (var i = 0; i < editControl.childNodes.length; i++) {
-        editControl.childNodes[i].style.display = "none";
+        if(editControl.childNodes[i].nodeType === 1){
+            editControl.childNodes[i].style.display = "none";
+        }
     }
 }
 
@@ -793,7 +796,7 @@ function editEntry(e) {
     el.parentNode.appendChild(cancel);
 
     for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
-        if (ausgabenElement.childNodes[i].className.includes("td")) {
+        if (ausgabenElement.childNodes[i].nodeType === 1 && ausgabenElement.childNodes[i].className.includes("td")) {
             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
                 //Preis von €-Zeichen trennen
                 var preis = ausgabenElement.childNodes[i].innerHTML.split(' ')[0];
@@ -941,7 +944,7 @@ function updateEntry(e) {
 
                 if (sameMonth) {
                     for (var i = 0; i < (ausgabenElement.childNodes.length - 1); i++) {
-                        if (ausgabenElement.childNodes[i].className.includes("td")) {
+                        if (ausgabenElement.childNodes[i].nodeType === 1 && ausgabenElement.childNodes[i].className.includes("td")) {
                             var text = $(ausgabenElement.childNodes[i]).children('input').val();
                             $(ausgabenElement.childNodes[i]).children('input').remove();
                             if (ausgabenElement.childNodes[i].classList.contains('preis')) {

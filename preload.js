@@ -1,6 +1,8 @@
 "use strict";
 
 var loadingDone = false;
+var json;
+var mainLoaded;
 preload();
 
 function preload() {
