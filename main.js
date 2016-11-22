@@ -85,6 +85,10 @@ function back(e) {
 }
 
 function showDataView() {
+    let newElements = document.getElementById("ausgabenliste").querySelectorAll(".tr.ausgabe.new");
+    for (let i = 0; i < newElements.length; i++) {
+        newElements[i].classList.remove("new");
+    }
     $('#overlay').css('display', 'none');
     $('#content').css('display', 'flex');
     window.history.pushState({
@@ -496,9 +500,8 @@ function editControlShowSpinner(editControl) {
 }
 
 function hideEditControls(editControl) {
-    console.log(editControl.childNodes);
     for (var i = 0; i < editControl.childNodes.length; i++) {
-        if(editControl.childNodes[i].nodeType === 1){
+        if (editControl.childNodes[i].nodeType === 1) {
             editControl.childNodes[i].style.display = "none";
         }
     }
@@ -850,8 +853,8 @@ function updateEntry(e) {
     editControlShowSpinner(parent);
 
     var ausgabenElement = parent.parentNode;
-    var idausgabe = $(ausgabenElement).attr('data-id');
-    deleteError(idausgabe);
+    var id = $(ausgabenElement).attr('data-id');
+    deleteError(id);
 
     var params = {};
 
@@ -912,11 +915,17 @@ function updateEntry(e) {
         params.beschreibung = encodeURIComponent($(ausgabenElement).children('.td-beschreibung').children('input').val());
     }
 
-    params.idausgabe = idausgabe;
+    if (currentView === "spendings") {
+        params.idausgabe = id;
+    }
+    else {
+        params.ideinnahme = id;
+    }
     params.action = 'edit';
+    params.entrytype = currentView;
 
     if (showError) {
-        fehlerAnzeigen(error, idausgabe);
+        fehlerAnzeigen(error, id);
         reAddEditControls(ausgabenElement);
     }
     else {
@@ -961,7 +970,12 @@ function updateEntry(e) {
                         var preisAlt = convertPreisToPoint($(ausgabenElement).children('.td-preis').attr('data-input'));
                         var preisNeu = convertPreisToPoint(params.preis);
                         var change = -preisAlt + preisNeu;
-                        addSpendings(parseFloat(change));
+                        if(currentView === "spendings"){
+                            addSpendings(parseFloat(change));
+                        }
+                        else {
+                            addEarnings(parseFloat(change));
+                        }
                     }
 
                     reAddEditControls(ausgabenElement);
