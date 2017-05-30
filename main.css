@@ -71,6 +71,10 @@ select {
     background-image: none;
 }
 
+.hidden {
+    display: none;
+}
+
 #load {
     font-family: 'nsvb-symbol';
 }
@@ -584,7 +588,11 @@ content {
 
 .chart {
     width: 100%;
-    height: 500px;
+    min-height: 500px;
+}
+
+#chart-category-select {
+    display: inline-block;
 }
 
 #empty {

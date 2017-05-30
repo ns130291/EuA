@@ -1,17 +1,16 @@
 "use strict";
-
 /*global moment*/
 /*global Highcharts*/
 /*global $*/
 
 if (!String.prototype.includes) {
-    String.prototype.includes = function(s) {
+    String.prototype.includes = function (s) {
         return this.indexOf(s) > -1
     }
 }
 
 /* http://stackoverflow.com/a/16771535/1565646 */
-var getScrollbarWidth = function() {
+var getScrollbarWidth = function () {
     var div, width = getScrollbarWidth.width;
     if (width === undefined) {
         div = document.createElement('div');
@@ -31,22 +30,23 @@ var chart = null;
 var currentView = "spendings";
 var mainLoaded = false;
 
-$(document).ready(function() {
+$(document).ready(function () {
     mainLoaded = true;
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#switch-to-stats").click(showStatsView);
     $("#overlay-close").click(showDataView);
-    $("#input-form").submit(function(e) {
+    $('#chart-category-add').click(addChart);
+    $("#input-form").submit(function (e) {
         saveEntry();
         e.preventDefault();
     });
-    $("#spendings").click(function() {
+    $("#spendings").click(function () {
         $("#earnings").removeClass("active");
         $("#spendings").addClass("active");
         switchView("spendings");
     });
-    $("#earnings").click(function() {
+    $("#earnings").click(function () {
         $("#spendings").removeClass("active");
         $("#earnings").addClass("active");
         switchView("earnings");
@@ -70,14 +70,12 @@ function back(e) {
     var state = e.originalEvent.state;
     if (state !== null && state.year !== undefined && state.month !== undefined) {
         datum.year(state.year).month(state.month);
-    }
-    else {
+    } else {
         datum = moment();
     }
     if (state !== null && state.statistics !== undefined) {
         showStatsView();
-    }
-    else {
+    } else {
         showDataView();
         loadingScreen();
     }
@@ -111,7 +109,7 @@ function showStatsView() {
 function overlayCharts() {
     $.post('api.php', {
         action: 'get_sum_months'
-    }).done(function(data) {
+    }).done(function (data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -132,46 +130,138 @@ function overlayCharts() {
 
                 //change listener on select element for mobile
                 //TODO: change active element in desktop version and vice versa
-                $('#select-mobile > select').change(function(e) {
+                $('#select-mobile > select').change(function (e) {
                     var optionSelected = $(this).find("option:selected");
                     if ($(optionSelected).attr('data-month') != null) {
                         monthChart($(optionSelected).attr('data-month'), $(optionSelected).attr('data-year'));
-                    }
-                    else {
+                    } else {
                         yearChart($(optionSelected).attr('data-year'));
                     }
 
                 });
 
+                $.post('api.php', {
+                    action: 'get_categories',
+                    mincount: 2
+                }).done(function (data) {
+                    let json = JSON.parse(data);
+                    if (json['error'] === undefined) {
+                        if (json.kategorien) {
+                            let categorySelect = $('#chart-category-select > select');
+                            for (let kategorie of json.kategorien) {
+                                if (kategorie === null) {
+                                    kategorie = "Ohne Kategorie"
+                                }
+                                categorySelect.append($('<option>').html(kategorie).attr('data-category', kategorie));
+                            }
+                        }
+                    } else {
+                        // TODO show error message instead of select box
+                    }
+                });
+
                 //TODO: load chart from selected category
                 if (ausgaben.length > 0) {
                     yearChart(ausgaben[0].jahr);
+                    $('#add-chart').removeClass('hidden');
                 }
             }
-        }
-        else {
+        } else {
             errorHandling(json);
         }
     });
 }
 
 function overlayAddSelect(label, year, spendings, month) {
-    if (spendings === undefined) {
-        $('#select').append($('<div>').addClass('select-element year').html(label).attr('data-year', year).click(function(e) {
+    if (spendings === undefined) { // year chart
+        $('#select').append($('<div>').addClass('select-element year').html(label).attr('data-year', year).click(function (e) {
             $('#select').children().removeClass('active');
             $(e.target).addClass('active');
             yearChart($(e.target).attr('data-year'));
+            $('#add-chart').removeClass('hidden');
         }));
         $('#select-mobile > select').append($('<optgroup>').attr('label', label));
         $('#select-mobile > select > optgroup[label="' + label + '"]').append($('<option>').html('Übersicht ' + label).attr('data-year', year));
-    }
-    else {
-        $('#select').append($('<div>').addClass('select-element').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-month', month).attr('data-year', year).click(function(e) {
+    } else { // month chart
+        $('#select').append($('<div>').addClass('select-element').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-month', month).attr('data-year', year).click(function (e) {
             $('#select').children().removeClass('active');
             $(e.target).addClass('active');
             monthChart($(e.target).attr('data-month'), $(e.target).attr('data-year'));
+            $('#add-chart').addClass('hidden');
         }));
         $('#select-mobile > select > optgroup[label="' + year + '"]').append($('<option>').html(label + ' - ' + spendings).attr('data-month', month).attr('data-year', year));
+    }
+}
+
+function addChart() {
+    let year = $('.select-element.year.active');
+    if (year !== undefined) {
+        let category = $('#chart-category-select > select option:selected').attr('data-category');
+        let postCategory = category;
+        if (category === "Ohne Kategorie") {
+            postCategory = "null";
+        }
+        let currentYear = year.attr('data-year');
+        $.post('api.php', {
+            action: 'get_overview_year_category',
+            jahr: currentYear,
+            kategorie: postCategory
+        }).done(function (data) {
+            let json = JSON.parse(data);
+            if (json['error'] === undefined) {
+                if (json.ausgaben) {
+                    let chartElement = $("<div>").appendTo($('#additional-charts')[0]);
+                    let ausgaben = json.ausgaben;
+                    let series = [];
+                    series[0] = {
+                        name: category,
+                        data: []
+                    };
+                    for (let x in ausgaben) {
+                        series[0].data[ausgaben[x].monat - 1] = parseFloat(ausgaben[x].preis);
+                    }
+                    for (let i = 0; i < 12; i++) {
+                        if (series[0].data[i] === undefined || series[0].data[i] === null) {
+                            series[0].data[i] = 0;
+                        }
+                    }
+
+                    new Highcharts.Chart({
+                        chart: {
+                            renderTo: $('#additional-charts div').last()[0],
+                            type: 'column'
+                        },
+                        title: {
+                            text: category
+                        },
+                        xAxis: {
+                            categories: "Jan._Febr._Mrz._Apr._Mai_Jun._Jul._Aug._Sept._Okt._Nov._Dez.".split("_")
+                        },
+                        yAxis: {
+                            title: {
+                                text: ''
+                            }
+                        },
+                        tooltip: {
+                            formatter: function () {
+                                return this.x + '<br/>' +
+                                        '<span style="color:' + this.series.color + '"> ● </span>' + this.series.name + ': <b>' + convertPreisToComma(this.point.y) + ' €</b><br/>' +
+                                        'Summe: ' + convertPreisToComma(this.point.stackTotal) + ' €';
+                            }
+                        },
+                        plotOptions: {
+                            column: {
+                                stacking: 'normal'
+                            }
+                        },
+                        series: series,
+                        credits: false
+                    });
+                }
+            } else {
+                errorHandling(json);
+            }
+        });
     }
 }
 
@@ -181,7 +271,7 @@ function monthChart(month, year) {
         action: 'get_overview_month',
         monat: month,
         jahr: year
-    }).done(function(data) {
+    }).done(function (data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -193,18 +283,17 @@ function monthChart(month, year) {
                     data[x] = [];
                     if (ausgaben[x].kategorie === null) {
                         data[x][0] = 'Ohne Kategorie';
-                    }
-                    else {
+                    } else {
                         data[x][0] = ausgaben[x].kategorie;
                     }
                     data[x][1] = parseFloat(ausgaben[x].preis);
                 }
 
                 var series = [{
-                    type: 'pie',
-                    name: 'Summe',
-                    data: data
-                }];
+                        type: 'pie',
+                        name: 'Summe',
+                        data: data
+                    }];
 
                 chart = new Highcharts.Chart({
                     chart: {
@@ -234,8 +323,7 @@ function monthChart(month, year) {
                     credits: false
                 });
             }
-        }
-        else {
+        } else {
             errorHandling(json);
         }
     });
@@ -246,7 +334,7 @@ function yearChart(year) {
     $.post('api.php', {
         action: 'get_overview_year',
         jahr: year
-    }).done(function(data) {
+    }).done(function (data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
@@ -263,8 +351,7 @@ function yearChart(year) {
                                 name: 'Ohne Kategorie',
                                 data: []
                             };
-                        }
-                        else {
+                        } else {
                             series[i] = {
                                 name: kategorie,
                                 data: []
@@ -299,10 +386,10 @@ function yearChart(year) {
                         }
                     },
                     tooltip: {
-                        formatter: function() {
+                        formatter: function () {
                             return this.x + '<br/>' +
-                                '<span style="color:' + this.series.color + '"> ● </span>' + this.series.name + ': <b>' + convertPreisToComma(this.point.y) + ' €</b><br/>' +
-                                'Summe: ' + convertPreisToComma(this.point.stackTotal) + ' €';
+                                    '<span style="color:' + this.series.color + '"> ● </span>' + this.series.name + ': <b>' + convertPreisToComma(this.point.y) + ' €</b><br/>' +
+                                    'Summe: ' + convertPreisToComma(this.point.stackTotal) + ' €';
                         }
                     },
                     plotOptions: {
@@ -314,8 +401,7 @@ function yearChart(year) {
                     credits: false
                 });
             }
-        }
-        else {
+        } else {
             errorHandling(json);
         }
     });
@@ -334,8 +420,7 @@ function processURL() {
         if (month !== null && month.length === 2 && month[1] >= 1 && month[1] <= 12) {
             if (year !== null && year.length === 2) {
                 datum.year(year[1]);
-            }
-            else {
+            } else {
                 if (month[1] - 1 > datum.month()) {
                     datum.subtract(1, "year");
                 }
@@ -352,8 +437,7 @@ function processURL() {
     if (loadingDone === true) {
         showEntries();
         console.log("preload already finished");
-    }
-    else if (loadingDone === "error") {
+    } else if (loadingDone === "error") {
         holeDaten();
         console.log("preload FAILED");
     }
@@ -367,28 +451,22 @@ function errorHandling(json) {
     if (json['error'] === 'not_logged_in') {
         if (json['location']) {
             window.location = json['location'];
-        }
-        else {
+        } else {
             alert("Sie sind nicht eingeloggt");
         }
-    }
-    else if (json['error'] === 'server') {
+    } else if (json['error'] === 'server') {
         if (json['msg']) {
             alert(json['msg']);
-        }
-        else {
+        } else {
             alert("Unbekannter Server Fehler");
         }
-    }
-    else if (json['error'] === 'action_missing') {
+    } else if (json['error'] === 'action_missing') {
         if (json['msg']) {
             alert(json['msg']);
-        }
-        else {
+        } else {
             alert("Unbekannter Server Fehler");
         }
-    }
-    else {
+    } else {
         alert("Unbekannter Fehler");
     }
 }
@@ -398,12 +476,11 @@ function holeDaten(callback, ...args) {
         action: 'get_month',
         month: (datum.month() + 1),
         year: datum.year()
-    }).done(function(data) {
+    }).done(function (data) {
         json = JSON.parse(data);
         if (json['error'] === undefined) {
             showEntries(callback, ...args);
-        }
-        else {
+        } else {
             errorHandling(json);
         }
     });
@@ -467,8 +544,7 @@ function datenAnzeigen() {
                 var element = createRow(currentView === "spendings" ? daten[x].idausgabe : daten[x].ideinnahme, dateToLocal(daten[x].datum), (daten[x].kategorie) ? daten[x].kategorie : "", daten[x].art, (daten[x].preis.indexOf(".")) ? daten[x].preis.replace(".", ",") : daten[x].preis, (daten[x].beschreibung) ? daten[x].beschreibung : "");
                 $("#ausgabenliste").append(element);
             }
-        }
-        else {
+        } else {
             showEmpty();
         }
     }
@@ -508,6 +584,10 @@ function hideEditControls(editControl) {
 }
 
 function removeEntry(e) {
+    if (currentView === "earnings") {
+        alert("Not supported"); // TODO
+        return;
+    }
     var el = e.target;
     var ausgabenElement = el.parentNode.parentNode;
 
@@ -520,11 +600,11 @@ function removeEntry(e) {
     $.post('api.php', {
         action: 'delete',
         idausgabe: ausgabenElement.getAttribute("data-id")
-    }).done(function(data) {
+    }).done(function (data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.deleted === 'true') {
-                $(ausgabenElement).on('transitionend', function() {
+                $(ausgabenElement).on('transitionend', function () {
                     document.getElementById("ausgabenliste").removeChild(ausgabenElement);
                 });
                 $(ausgabenElement).addClass('remove-animation');
@@ -535,8 +615,7 @@ function removeEntry(e) {
                     showEmpty();
                 }
             }
-        }
-        else {
+        } else {
             errorHandling(json);
         }
     });
@@ -550,7 +629,7 @@ function isEmpty(el) {
 function fehlerAnzeigen(error, id) {
     if (id !== undefined && id !== null) {
         if (error['datum'] !== undefined) {
-            $('.ausgabe[data-id=' + id + '] .td-datum').append($('<div>').addClass('error').text(error['datum']) /*.append($('<div>').addClass('error-diamond'))*/ );
+            $('.ausgabe[data-id=' + id + '] .td-datum').append($('<div>').addClass('error').text(error['datum']) /*.append($('<div>').addClass('error-diamond'))*/);
         }
         if (error['art'] !== undefined) {
             $('.ausgabe[data-id=' + id + '] .td-art').append($('<div>').addClass('error').text(error['art']));
@@ -558,10 +637,9 @@ function fehlerAnzeigen(error, id) {
         if (error['preis'] !== undefined) {
             $('.ausgabe[data-id=' + id + '] .td-preis').append($('<div>').addClass('error').text(error['preis']));
         }
-    }
-    else {
+    } else {
         if (error['datum'] !== undefined) {
-            $('#input .td-datum').append($('<div>').addClass('error').text(error['datum']) /*.append($('<div>').addClass('error-diamond'))*/ );
+            $('#input .td-datum').append($('<div>').addClass('error').text(error['datum']) /*.append($('<div>').addClass('error-diamond'))*/);
         }
         if (error['art'] !== undefined) {
             $('#input .td-art').append($('<div>').addClass('error').text(error['art']));
@@ -575,8 +653,7 @@ function fehlerAnzeigen(error, id) {
 function deleteError(id) {
     if (id !== undefined && id !== null) {
         $('.ausgabe[data-id=' + id + '] .error').remove();
-    }
-    else {
+    } else {
         $('#input .error').remove();
     }
 }
@@ -591,13 +668,11 @@ function saveEntry() {
     if (datumEntry === undefined || datumEntry === "") {
         error['datum'] = "Datum fehlt";
         showError = true;
-    }
-    else {
+    } else {
         var datumDB = "";
         if (datumEntry.indexOf(".") > 0) {
             datumDB = localToDate(datumEntry);
-        }
-        else {
+        } else {
             datumDB = datumEntry;
             datumEntry = dateToLocal(datumEntry);
         }
@@ -615,15 +690,13 @@ function saveEntry() {
     if (preis === undefined || preis === "") {
         error['preis'] = "Preis fehlt";
         showError = true;
-    }
-    else {
+    } else {
         var preisDB = 0;
         //TODO: ???? 
         preis = convertPreisToComma(preis);
         if (preis.indexOf(",") > 0) {
             preisDB = preis.replace(",", ".");
-        }
-        else {
+        } else {
             preisDB = preis;
             if (preis.indexOf(".") > 0) {
                 preisDB = preis;
@@ -635,8 +708,7 @@ function saveEntry() {
 
     if (showError) {
         fehlerAnzeigen(error);
-    }
-    else {
+    } else {
         var entry = {};
         entry.datumDB = datumDB;
         entry.datum = datumEntry;
@@ -650,8 +722,7 @@ function saveEntry() {
         var datumM;
         if (datumDB.split("-")[0].length < 4) {
             datumM = moment(datumDB, "YY-M-D");
-        }
-        else {
+        } else {
             datumM = moment(datumDB, "YYYY-M-D");
         }
 
@@ -659,8 +730,7 @@ function saveEntry() {
             datum.month(datumM.month());
             datum.year(datumM.year());
             andererMonat(saveEntryRequest, entry);
-        }
-        else {
+        } else {
             saveEntryRequest(entry);
         }
     }
@@ -681,7 +751,7 @@ function saveEntryRequest(entry) {
         params.beschreibung = encodeURIComponent(entry.beschreibung);
     }
 
-    $.post("api.php", params).done(function(result) {
+    $.post("api.php", params).done(function (result) {
         var json = JSON.parse(result);
         if (json['error'] === undefined) {
             //remove empty view if visible
@@ -694,16 +764,32 @@ function saveEntryRequest(entry) {
 
             if (json['entrytype'] === 'earnings') {
                 addEarnings(entry.preisDB);
-            }
-            else {
+                var einnahme = {
+                    ideinnahme: json['id'],
+                    art: entry.art,
+                    beschreibung: entry.beschreibung,
+                    datum: entry.datumDB,
+                    kategorie: entry.kategorie,
+                    preis: entry.preisDB
+                };
+                addEarningsToJSON(einnahme);
+            } else {
                 addSpendings(entry.preisDB);
+                var ausgabe = {
+                    idausgabe: json['id'],
+                    art: entry.art,
+                    beschreibung: entry.beschreibung,
+                    datum: entry.datumDB,
+                    kategorie: entry.kategorie,
+                    preis: entry.preisDB
+                };
+                addSpendingsToJSON(ausgabe);
             }
 
             clearInput();
 
             entry = {};
-        }
-        else {
+        } else {
             errorHandling(json);
         }
     });
@@ -718,9 +804,10 @@ function clearInput() {
  * @param float preis Preis der hinzugefügt werden soll, negative Werte zum abziehen
  */
 function addSpendings(preis) {
-    var amount = parseFloat(document.querySelector("#spendings").getAttribute("data-amount"));
+    var amount = parseFloat(json['summeausgaben']);
     amount += parseFloat(preis); //TODO why parseFloat? 
     setSpendings(amount);
+    json['summeausgaben'] = amount + "";
 }
 
 function setSpendings(amount) {
@@ -728,15 +815,72 @@ function setSpendings(amount) {
     document.querySelector("#spendings").setAttribute("data-amount", amount);
 }
 
+function addSpendingsToJSON(ausgabe) {
+    json['einnahmen'].push(ausgabe);
+}
+
+function changeSpending(params) {
+    for (var i = 0; i < json['ausgaben'].length; i++) {
+        if (json['ausgaben'][i]['idausgabe'] == params.idausgabe) {
+            var entry = json['ausgaben'][i]
+            if (params.datum) {
+                entry['datum'] = params.datum;
+            }
+            if (params.kategorie) {
+                entry['kategorie'] = params.kategorie;
+            }
+            if (params.art) {
+                entry['art'] = params.art;
+            }
+            if (params.preis) {
+                entry['preis'] = params.preis;
+            }
+            if (params.beschreibung) {
+                entry['beschreibung'] = params.beschreibung;
+            }
+            break;
+        }
+    }
+}
+
 function addEarnings(preis) {
-    var amount = parseFloat(document.querySelector("#earnings").getAttribute("data-amount"));
+    var amount = parseFloat(json['summeeinnahmen']);
     amount += parseFloat(preis); //TODO why parseFloat? 
     setEarnings(amount);
+    json['summeeinnahmen'] = amount + "";
 }
 
 function setEarnings(amount) {
     $('#earnings').html("Einnahmen " + Math.round(amount) + " €");
     document.querySelector("#earnings").setAttribute("data-amount", amount);
+}
+
+function addEarningsToJSON(einnahme) {
+    json['einnahmen'].push(einnahme);
+}
+
+function changeEarning(params) {
+    for (var i = 0; i < json['einnahmen'].length; i++) {
+        if (json['einnahmen'][i]['ideinnahme'] == params.ideinnahme) {
+            var entry = json['einnahmen'][i]
+            if (params.datum) {
+                entry['datum'] = params.datum;
+            }
+            if (params.kategorie) {
+                entry['kategorie'] = params.kategorie;
+            }
+            if (params.art) {
+                entry['art'] = params.art;
+            }
+            if (params.preis) {
+                entry['preis'] = params.preis;
+            }
+            if (params.beschreibung) {
+                entry['beschreibung'] = params.beschreibung;
+            }
+            break;
+        }
+    }
 }
 
 /**
@@ -766,7 +910,7 @@ function createRow(id, datum, kategorie, art, preis, beschreibung) {
 <div class="td td-datum">${datum}</div>
 <div class="td td-kategorie">${kategorie}</div>
 <div class="td td-art">${art}</div>
-<div class="preis td td-preis">${preis} &euro;</div>
+<div class="preis td td-preis">${convertPreisToComma(preis)} &euro;</div>
 <div class="td td-beschreibung">${beschreibung}</div>
 <div class="td td-optionen">
     <div class="edit icon-pencil"></div><div class="remove icon-trash"></div>
@@ -806,8 +950,7 @@ function editEntry(e) {
                 preis = convertPreisToPoint(preis);
                 ausgabenElement.childNodes[i].setAttribute('data-input', preis);
                 ausgabenElement.childNodes[i].innerHTML = '<input size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01" value="' + preis + '"><span class="input-suffix">&euro;</span>';
-            }
-            else {
+            } else {
                 var input = ausgabenElement.childNodes[i].innerHTML;
                 ausgabenElement.childNodes[i].setAttribute('data-input', input);
                 ausgabenElement.childNodes[i].innerHTML = '<input type="text" value="' + input + '">';
@@ -833,8 +976,7 @@ function cancelEditEntry(e) {
             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
                 $(ausgabenElement.childNodes[i]).children('span').remove();
                 $(ausgabenElement.childNodes[i]).html(convertPreisToComma(text) + ' €');
-            }
-            else {
+            } else {
                 $(ausgabenElement.childNodes[i]).html(text);
             }
         }
@@ -863,13 +1005,11 @@ function updateEntry(e) {
         if (datumAusgabe === undefined || datumAusgabe === "") {
             error['datum'] = "Datum fehlt";
             showError = true;
-        }
-        else {
+        } else {
             var datumDB = "";
             if (datumAusgabe.indexOf(".") > 0) {
                 datumDB = localToDate(datumAusgabe);
-            }
-            else {
+            } else {
                 datumDB = datumAusgabe;
                 datumAusgabe = dateToLocal(datumAusgabe);
             }
@@ -886,8 +1026,7 @@ function updateEntry(e) {
         if (art === undefined || art === "") {
             error['art'] = "Art der Ausgabe fehlt";
             showError = true;
-        }
-        else {
+        } else {
             params.art = encodeURIComponent(art);
         }
     }
@@ -897,13 +1036,11 @@ function updateEntry(e) {
         if (preis === undefined || preis === "") {
             error['preis'] = "Preis fehlt";
             showError = true;
-        }
-        else {
+        } else {
             var preisDB = 0;
             if (preis.indexOf(",") > 0) {
                 preisDB = preis.replace(",", ".");
-            }
-            else {
+            } else {
                 preisDB = preis;
             }
             params.preis = preisDB;
@@ -917,8 +1054,7 @@ function updateEntry(e) {
 
     if (currentView === "spendings") {
         params.idausgabe = id;
-    }
-    else {
+    } else {
         params.ideinnahme = id;
     }
     params.action = 'edit';
@@ -927,9 +1063,8 @@ function updateEntry(e) {
     if (showError) {
         fehlerAnzeigen(error, id);
         reAddEditControls(ausgabenElement);
-    }
-    else {
-        $.post("api.php", params).done(function(result) {
+    } else {
+        $.post("api.php", params).done(function (result) {
             var json = JSON.parse(result);
             if (json['error'] === undefined) {
                 var sameMonth = true;
@@ -937,8 +1072,7 @@ function updateEntry(e) {
                     var datumM;
                     if (params.datum.split("-")[0].length < 4) {
                         datumM = moment(params.datum, "YY-M-D");
-                    }
-                    else {
+                    } else {
                         datumM = moment(params.datum, "YYYY-M-D");
                     }
 
@@ -959,8 +1093,7 @@ function updateEntry(e) {
                             if (ausgabenElement.childNodes[i].classList.contains('preis')) {
                                 $(ausgabenElement.childNodes[i]).children('span').remove();
                                 $(ausgabenElement.childNodes[i]).html(convertPreisToComma(text) + ' €');
-                            }
-                            else {
+                            } else {
                                 $(ausgabenElement.childNodes[i]).html(text);
                             }
                         }
@@ -970,18 +1103,22 @@ function updateEntry(e) {
                         var preisAlt = convertPreisToPoint($(ausgabenElement).children('.td-preis').attr('data-input'));
                         var preisNeu = convertPreisToPoint(params.preis);
                         var change = -preisAlt + preisNeu;
-                        if(currentView === "spendings"){
+                        if (currentView === "spendings") {
                             addSpendings(parseFloat(change));
-                        }
-                        else {
+                        } else {
                             addEarnings(parseFloat(change));
                         }
                     }
 
+                    if (currentView === "spendings") {
+                        changeSpending(params);
+                    } else {
+                        changeEarning(params);
+                    }
+
                     reAddEditControls(ausgabenElement);
                 }
-            }
-            else {
+            } else {
                 reAddEditControls(ausgabenElement);
                 errorHandling(json);
             }
@@ -1000,19 +1137,16 @@ function prettifyDate() {
     let splitChar;
     if (inDate.indexOf(".") > 0 && inDate.indexOf(",") === -1) {
         splitChar = ".";
-    }
-    else if (inDate.indexOf(",") > 0 && inDate.indexOf(".") === -1) {
+    } else if (inDate.indexOf(",") > 0 && inDate.indexOf(".") === -1) {
         splitChar = ",";
-    }
-    else {
+    } else {
         return;
     }
     if (inDate.length >= 3) {
         if (occurrences(inDate, splitChar) === 1) {
             let outDate = moment(inDate, "D" + splitChar + "M").year(moment().year()).format("DD.MM.YYYY");
             $("#input-datum").val(outDate);
-        }
-        else if (occurrences(inDate, splitChar) === 2) {
+        } else if (occurrences(inDate, splitChar) === 2) {
             let tempDate = moment(inDate, "D" + splitChar + "M" + splitChar + "YYYY");
             if (tempDate.year() == 0) {
                 tempDate.year(moment().year());
@@ -1036,8 +1170,7 @@ function convertPreisToComma(preis) {
         if (preis.split(",")[1].length === 1) {
             preis += '0';
         }
-    }
-    else {
+    } else {
         preis += ',00';
     }
     return preis;
@@ -1053,19 +1186,20 @@ function occurrences(string, subString, allowOverlapping) {
 
     string += "";
     subString += "";
-    if (subString.length <= 0) return (string.length + 1);
+    if (subString.length <= 0)
+        return (string.length + 1);
 
     var n = 0,
-        pos = 0,
-        step = allowOverlapping ? 1 : subString.length;
+            pos = 0,
+            step = allowOverlapping ? 1 : subString.length;
 
     while (true) {
         pos = string.indexOf(subString, pos);
         if (pos >= 0) {
             ++n;
             pos += step;
-        }
-        else break;
+        } else
+            break;
     }
     return n;
 }

@@ -104,6 +104,18 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                     </div>
                     <div id="stats">
                         <div class="chart"></div>
+                        <div id="additional-charts"></div>
+                        <div class="hidden" id="add-chart">
+                            <div id="chart-category-select">
+                                Weitere Diagramme:
+                                <select>
+                                    
+                                </select>
+                            </div>
+                            <div id="chart-category-add" class="bar-element">
+                                Hinzufügen
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
