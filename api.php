@@ -47,6 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'get_overview_year':
             require 'api/get_overview_year.php';
             break;
+        case 'get_overview_year_category':
+            require 'api/get_overview_year_category.php';
+            break;
+        case 'get_categories':
+            require 'api/get_categories.php';
+            break;
 
         default:
             $json = array();
