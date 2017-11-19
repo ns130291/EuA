@@ -63,7 +63,9 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                 <form id="input-form">
                     <div id="input" class="tr">
                         <div class="td td-datum">
-                            <input id="input-datum" placeholder="Datum" size="10" type="date">
+                            <input id="datepicker" placeholder="Datum" size="10" type="date">
+                            <input id="input-datum" placeholder="Datum" size="10" type="text">
+                            <span id="opendatepicker" class="icon-calendar"></span>
                         </div>
                         <div class="td td-kategorie">
                             <input id="input-kategorie" placeholder="Benzin, Essen, etc." type="text">
@@ -73,7 +75,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                         </div>
                         <div class="td td-preis">
                             <input id="input-preis" size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
-                            <span>&euro;</span>
+                            <span>&nbsp;&euro;</span>
                         </div>
                         <div class="td td-beschreibung">
                             <input id="input-beschreibung" placeholder="mit Vanessa, etc." type="text">

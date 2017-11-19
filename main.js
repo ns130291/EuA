@@ -51,7 +51,24 @@ $(document).ready(function () {
         $("#earnings").addClass("active");
         switchView("earnings");
     });
-    $("#input-datum").change(prettifyDate);
+
+    if (!hasWebkitDatepicker('#datepicker')) {
+        $("#opendatepicker").css('display', 'inline-block');
+    }
+    $("#opendatepicker").click(function () {
+        $("#datepicker").focus().click();
+    });
+    $("#datepicker").change(function () {
+        $("#input-datum").val($("#datepicker").val());
+        prettifyDate()
+    });
+    $("#input-datum").change(function () {
+        prettifyDate();
+        let datestring = $("#input-datum").val();
+        datestring = moment(datestring, "D.M.YYYY").year(moment().year()).format("YYYY-MM-DD");
+        $("#datepicker").val(datestring);
+    });
+
     var scrollbarWidth = getScrollbarWidth();
     $("#ausgabenliste-header").css("padding-right", scrollbarWidth);
     $("#input").css("padding-right", scrollbarWidth);
@@ -567,7 +584,7 @@ function showEmpty() {
         'font-size': '25px'
     }));
 
-    $("#ausgaben").append(empty);
+    $("#ausgabenliste").append(empty);
 }
 
 function editControlShowSpinner(editControl) {
@@ -1135,14 +1152,16 @@ function reAddEditControls(ausgabenElement) {
 function prettifyDate() {
     let inDate = $("#input-datum").val();
     let splitChar;
-    if (inDate.indexOf(".") > 0 && inDate.indexOf(",") === -1) {
+    if (inDate.indexOf(".") > 0 && inDate.indexOf(",") === -1 && inDate.indexOf("-") === -1) {
         splitChar = ".";
-    } else if (inDate.indexOf(",") > 0 && inDate.indexOf(".") === -1) {
+    } else if (inDate.indexOf(",") > 0 && inDate.indexOf(".") === -1 && inDate.indexOf("-") === -1) {
         splitChar = ",";
+    } else if (inDate.indexOf("-") > 0 && inDate.indexOf(".") === -1 && inDate.indexOf(",") === -1) {
+        splitChar = "-";
     } else {
         return;
     }
-    if (inDate.length >= 3) {
+    if (inDate.length >= 3 && splitChar !== '-') {
         if (occurrences(inDate, splitChar) === 1) {
             let outDate = moment(inDate, "D" + splitChar + "M").year(moment().year()).format("DD.MM.YYYY");
             $("#input-datum").val(outDate);
@@ -1154,6 +1173,9 @@ function prettifyDate() {
             let outDate = tempDate.format("DD.MM.YYYY");
             $("#input-datum").val(outDate);
         }
+    } else if (inDate.length >= 5 && splitChar === '-' && occurrences(inDate, splitChar) === 2) {
+        let outDate = moment(inDate, "YYYY" + splitChar + "M" + splitChar + "D").year(moment().year()).format("DD.MM.YYYY");
+        $("#input-datum").val(outDate);
     }
 }
 
@@ -1203,3 +1225,9 @@ function occurrences(string, subString, allowOverlapping) {
     }
     return n;
 }
+
+function hasWebkitDatepicker(element) {
+    let style = window.getComputedStyle(document.querySelector('#datepicker'), '::-webkit-calendar-picker-indicator');
+    return (style.webkitAppearance !== undefined && style.msWrapFlow === undefined);
+}
+            

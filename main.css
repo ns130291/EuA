@@ -367,6 +367,7 @@ content {
 .th {
     font-weight: bold;
     border-bottom: 2px solid darkgray;
+    flex-shrink: 0;
 }
 
 .tr {
@@ -418,7 +419,7 @@ content {
 }
 
 .td input.preis {
-    width: 80%;
+    flex: auto;
 }
 
 .preis {
@@ -469,6 +470,12 @@ content {
 .td-preis {
     width: 7ch;
     flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.td-preis > span{
+    flex: none;
 }
 
 .tr-edit > .td-preis {
@@ -634,9 +641,43 @@ content {
     }
 }
 
+@media (max-width: 699px) {
+    #input-datum{
+        display: none;
+    }
+    #opendatepicker{
+        display: none !important;
+    }
+}
+
 @media (min-width:700px) {
     body {
         min-width: 700px;
+    }
+    .td-datum {
+        display: flex;
+        width: 11ch;
+        position: relative;
+    }
+    .tr-edit > .td-datum {
+        width: calc(11ch + 2px);
+    }
+    #input-datum {
+        flex: auto;
+    }
+    #datepicker{
+        z-index: -1;
+        position: absolute;
+        width: 1px;
+        padding: 0px;
+        border: 0px;
+        background: none;
+        color: transparent;
+        outline: none;
+    }
+    #opendatepicker{
+        cursor: pointer;
+        display: none;
     }
     .td-beschreibung {
         width: 150px;
