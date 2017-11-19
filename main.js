@@ -80,6 +80,11 @@ function switchView(view) {
     if (currentView !== view) {
         currentView = view;
         datenAnzeigen();
+        if(currentView === "earnings"){
+            $('.edit').css('display', 'none');
+        } else {
+            $('.edit').css('display', '');
+        }
     }
 }
 
