@@ -80,11 +80,11 @@ function switchView(view) {
     if (currentView !== view) {
         currentView = view;
         datenAnzeigen();
-        if(currentView === "earnings"){
+        /*if(currentView === "earnings"){
             $('.edit').css('display', 'none');
-        } else {
+        } else {*/
             $('.edit').css('display', '');
-        }
+        //}
     }
 }
 
@@ -606,10 +606,6 @@ function hideEditControls(editControl) {
 }
 
 function removeEntry(e) {
-    if (currentView === "earnings") {
-        alert("Not supported"); // TODO
-        return;
-    }
     var el = e.target;
     var ausgabenElement = el.parentNode.parentNode;
 
@@ -619,10 +615,17 @@ function removeEntry(e) {
     preis = preis.split(" ")[0];
     preis = convertPreisToPoint(preis);
 
-    $.post('api.php', {
+    var params = {
         action: 'delete',
-        idausgabe: ausgabenElement.getAttribute("data-id")
-    }).done(function (data) {
+        entrytype: currentView
+    };
+    if (currentView === "earnings") {
+        params.ideinnahme = ausgabenElement.getAttribute("data-id");
+    } else {        
+        params.idausgabe = ausgabenElement.getAttribute("data-id");
+    }
+    
+    $.post('api.php', params).done(function (data) {
         var json = JSON.parse(data);
         if (json['error'] === undefined) {
             if (json.deleted === 'true') {
@@ -1179,7 +1182,7 @@ function prettifyDate() {
             $("#input-datum").val(outDate);
         }
     } else if (inDate.length >= 5 && splitChar === '-' && occurrences(inDate, splitChar) === 2) {
-        let outDate = moment(inDate, "YYYY" + splitChar + "M" + splitChar + "D").year(moment().year()).format("DD.MM.YYYY");
+        let outDate = moment(inDate, "YYYY" + splitChar + "M" + splitChar + "D").format("DD.MM.YYYY");
         $("#input-datum").val(outDate);
     }
 }

@@ -5,6 +5,51 @@ $errorPW = false;
 $errorLogin = false;
 $errorServer = false;
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['auth'])) {
+        if ($_POST['auth'] == '') {
+            echo 'false';
+            exit;
+        }
+        $mysqli = new mysqli('localhost', 'eua', NULL, 'users');
+        if ($mysqli->connect_error) {
+            echo 'false';
+            exit;
+        }
+        $mysqli->set_charset('utf8');
+        $result = $mysqli->query('SELECT * FROM users.tokens WHERE token="' . $mysqli->real_escape_string($_POST['auth']) . '";');
+        if (!$result) {
+            echo 'false';
+            exit;
+        } else {
+            if($result->num_rows !== 1) {
+                echo 'false';
+                exit;
+            } // else --> token is valid, continue
+        }
+        $mysqli->close();
+        if (!isset($_POST['pw']) || $_POST['pw'] == '') { // only check if user exists
+            $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+            if ($mysqli->connect_error) {
+                echo 'false';
+                exit;
+            }
+            $mysqli->set_charset('utf8');
+            $result = $mysqli->query('SELECT * FROM eua.user WHERE user="' . $mysqli->real_escape_string($_POST['user']) . '";');
+            if (!$result) {
+                echo 'false';
+                exit;
+            } else {
+                if($result->num_rows !== 1) {
+                    echo 'false';
+                    exit;
+                } else {
+                    echo 'true';
+                    exit;
+                }
+            }
+            $mysqli->close();
+        }
+    }
     if (!isset($_POST['user']) || $_POST['user'] == '') {
         $errorUser = true;
     }
@@ -46,13 +91,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $hostname = $_SERVER['HTTP_HOST'];
                             $path = dirname($_SERVER['PHP_SELF']);
                             $_SESSION['angemeldet'] = true;
-                            if (isset($_SESSION['lastURL'])) {
-                                header('Location: https://' . $hostname . $_SESSION['lastURL'], true, 303);
-                                unset($_SESSION['lastURL']);
-                            } else {
-                                header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php', true, 303);
-                            }
-                            exit;
                         } else {
                             $_SESSION['angemeldet'] = false;
                             $errorServer = true;
@@ -68,6 +106,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
         $mysqli->close();
+        if (isset($_POST['auth'])) { // authentication for external services
+            if ($_SESSION['angemeldet'] == true) {
+                echo 'true';
+                exit;
+            } else {
+                echo 'false';
+                exit;
+            }
+        } else {
+            if ($_SESSION['angemeldet'] == true) {
+                if (isset($_SESSION['lastURL'])) {
+                    header('Location: https://' . $hostname . $_SESSION['lastURL'], true, 303);
+                    unset($_SESSION['lastURL']);
+                } else {
+                    header('Location: https://' . $hostname . ($path == '/' ? '' : $path) . '/index.php', true, 303);
+                }
+                exit;
+            }
+        }
     }
 } else {
     session_start();
