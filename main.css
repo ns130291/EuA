@@ -435,6 +435,7 @@ content {
 
 .td input.preis {
     flex: auto;
+    inline-size: 3ch;
 }
 
 .preis {
@@ -487,10 +488,14 @@ content {
     flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
+    align-items: baseline;
 }
 
 .td-preis > span{
     flex: none;
+    border-bottom: 1px solid #4bb1ff;
+    margin-bottom: 1px;
+    line-height: 25px;
 }
 
 .tr-edit > .td-preis {
@@ -528,6 +533,22 @@ content {
 
 #input-form {
     border-top: 2px solid darkgray;
+}
+
+#input input {
+    border-bottom: 1px solid #4bb1ff;
+    height: 25px;
+    margin-bottom: 1px;
+}
+
+#input input:focus {
+    border-bottom: 2px solid #4bb1ff;
+    margin-bottom: 0px;
+}
+
+#input input:focus + span{
+    border-bottom: 2px solid #4bb1ff;
+    margin-bottom: 0px;
 }
 
 .loading {
