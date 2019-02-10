@@ -28,8 +28,8 @@ input[type=number] {
   font-style: normal;
   font-weight: 400;
   src: local('Gudea'),
-       url('../fonts/gudea/gudea-v8-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-       url('../fonts/gudea/gudea-v8-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+       url('fonts/gudea/gudea-v8-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('fonts/gudea/gudea-v8-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
 /* gudea-italic - latin */
@@ -38,8 +38,8 @@ input[type=number] {
   font-style: italic;
   font-weight: 400;
   src: local('Gudea Italic'), local('Gudea-Italic'),
-       url('../fonts/gudea/gudea-v8-latin-italic.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-       url('../fonts/gudea/gudea-v8-latin-italic.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+       url('fonts/gudea/gudea-v8-latin-italic.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('fonts/gudea/gudea-v8-latin-italic.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
 /* gudea-700 - latin */
@@ -48,8 +48,8 @@ input[type=number] {
   font-style: normal;
   font-weight: 700;
   src: local('Gudea Bold'), local('Gudea-Bold'),
-       url('../fonts/gudea/gudea-v8-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-       url('../fonts/gudea/gudea-v8-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+       url('fonts/gudea/gudea-v8-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('fonts/gudea/gudea-v8-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
 
@@ -385,8 +385,16 @@ content {
     flex-shrink: 0;
 }
 
+.th .td-preis {
+    justify-content: flex-start;
+}
+
 .tr {
     border-bottom: 1px solid darkgray;
+}
+
+.tr:last-of-type {
+    border-bottom: none;
 }
 
 .tr,
