@@ -74,7 +74,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                             <input id="input-art" placeholder="Edeka, Döner, etc." type="text">
                         </div>
                         <div class="td td-preis">
-                            <input id="input-preis" size="10" class="preis" placeholder="Preis" type="number" min="0.01" step="0.01">
+                            <input id="input-preis" size="10" class="preis" placeholder="Preis" type="tel" minlength="1">
                             <span>&nbsp;&euro;</span>
                         </div>
                         <div class="td td-beschreibung">

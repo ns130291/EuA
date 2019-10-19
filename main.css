@@ -514,7 +514,7 @@ content {
 .tr-edit > .td-preis > input {
     border-right: none;
     text-align: right;
-    width: calc(100% - 1.6ch - 4px);
+    padding-right: 0;
 }
 
 .tr-edit > .td-preis > .input-suffix {
@@ -522,10 +522,10 @@ content {
     border-left: none;
     line-height: 21px;
     padding-bottom: 2px;
-    width: calc(1.6ch - 1px);
     padding-right: 1px;
     display: inline-block;
     text-align: right;
+    margin-bottom: 0;
 }
 
 .td-beschreibung {
