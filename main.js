@@ -304,10 +304,10 @@ function monthChart(month, year) {
 
                 for (var x in ausgaben) {
                     data[x] = [];
-                    if (ausgaben[x].kategorie === null) {
+                    if (ausgaben[x].kategorie === null || ausgaben[x].kategorie === "") {
                         data[x][0] = 'Ohne Kategorie';
                     } else {
-                        data[x][0] = ausgaben[x].kategorie;
+                        data[x][0] = ausgaben[x].kategorie.trim();
                     }
                     data[x][1] = parseFloat(ausgaben[x].preis);
                 }
@@ -366,10 +366,14 @@ function yearChart(year) {
                 var i = -1;
                 var series = [];
                 for (var x in ausgaben) {
-                    if (kategorie !== ausgaben[x].kategorie) {
-                        kategorie = ausgaben[x].kategorie;
+                    let newKategorie = ausgaben[x].kategorie;
+                    if (newKategorie !== null) {
+                        newKategorie = newKategorie.trim();
+                    }
+                    if (kategorie !== newKategorie) {
+                        kategorie = newKategorie;
                         i++;
-                        if (kategorie === null) {
+                        if (kategorie === null || kategorie === "") {
                             series[i] = {
                                 name: 'Ohne Kategorie',
                                 data: []
