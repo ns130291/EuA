@@ -26,7 +26,7 @@ $set = '';
 if (isset($_POST["datum"])) {
     $set .= ' datum="' . $mysqli->real_escape_string($_POST["datum"]) . '",';
 }
-if (isset($_POST["kategorie"])) {
+if (isset($_POST["kategorie"]) && $_POST["kategorie"] !== "") {
     $set .= ' kategorie="' . $mysqli->real_escape_string(urldecode($_POST["kategorie"])) . '",';
 }
 if (isset($_POST["art"])) {
@@ -35,7 +35,7 @@ if (isset($_POST["art"])) {
 if (isset($_POST["preis"])) {
     $set .= ' preis=' . $mysqli->real_escape_string($_POST["preis"]) . ',';
 }
-if (isset($_POST["beschreibung"])) {
+if (isset($_POST["beschreibung"]) && $_POST["beschreibung"] !== "") {
     $set .= ' beschreibung="' . $mysqli->real_escape_string(urldecode($_POST["beschreibung"])) . '",';
 }
 

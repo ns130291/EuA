@@ -4,7 +4,7 @@
 
 $datum = '"' . $_POST["datum"] . '"';
 $kategorie = "";
-if (isset($_POST["kategorie"])) {
+if (isset($_POST["kategorie"]) && $_POST["kategorie"] !== "") {
     $kategorie = '"' . $mysqli->real_escape_string(urldecode($_POST["kategorie"])) . '"';
 } else {
     $kategorie = "null";
@@ -12,7 +12,7 @@ if (isset($_POST["kategorie"])) {
 $art = '"' . $mysqli->real_escape_string(urldecode($_POST["art"])) . '"';
 $preis = $_POST["preis"];
 $beschreibung = "";
-if (isset($_POST["beschreibung"])) {
+if (isset($_POST["beschreibung"]) && $_POST["beschreibung"] !== "") {
     $beschreibung = '"' . $mysqli->real_escape_string(urldecode($_POST["beschreibung"])) . '"';
 } else {
     $beschreibung = "null";
