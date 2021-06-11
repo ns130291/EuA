@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         die(json_encode($json));
     }
 
-    $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+    $mysqli = new mysqli('mysql', 'eua', NULL, 'eua');
 
     if ($mysqli->connect_error) {
         die('{"error":"server","msg":"Datenbankfehler: #' . $mysqli->connect_errno . ' ' . $mysqli->connect_error . '"}');

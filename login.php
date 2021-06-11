@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo 'false';
             exit;
         }
-        $mysqli = new mysqli('localhost', 'eua', NULL, 'users');
+        $mysqli = new mysqli('mysql', 'eua', NULL, 'users');
         if ($mysqli->connect_error) {
             echo 'false';
             exit;
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $mysqli->close();
         if (!isset($_POST['pw']) || $_POST['pw'] == '') { // only check if user exists
-            $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+            $mysqli = new mysqli('mysql', 'eua', NULL, 'eua');
             if ($mysqli->connect_error) {
                 echo 'false';
                 exit;
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     if (!$errorPW && !$errorUser) {
         session_start();
-        $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+        $mysqli = new mysqli('mysql', 'eua', NULL, 'eua');
         if ($mysqli->connect_error) {
             $_SESSION['angemeldet'] = false;
             $errorServer = true;
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $check = $t_hasher->CheckPassword($_POST["pw"], $pw);
                 if ($check) {
                     $mysqli->close();
-                    $mysqli = new mysqli('localhost', 'eua', NULL, 'eua');
+                    $mysqli = new mysqli('mysql', 'eua', NULL, 'eua');
                     $result = $mysqli->query(sprintf('CALL eua.standardKonto("%s");', $_POST["user"]));
                     if (!$result) {
                         $_SESSION['angemeldet'] = false;
