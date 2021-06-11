@@ -495,7 +495,7 @@ content {
 .td input {
     border: none;
     padding: 0;
-    width: 100%;
+    width: calc(100% - 2px);
 }
 
 .tr-edit input {
@@ -780,7 +780,7 @@ content {
         width: calc(11ch + 2px);
     }
     #input-datum {
-        flex: auto;
+        /*flex: auto;*/
     }
     #datepicker{
         z-index: -1;

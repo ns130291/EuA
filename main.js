@@ -74,7 +74,7 @@ $(document).ready(function () {
     $("#input-datum").change(function () {
         prettifyDate();
         let datestring = $("#input-datum").val();
-        datestring = moment(datestring, "D.M.YYYY").year(moment().year()).format("YYYY-MM-DD");
+        datestring = moment(datestring, "D.M.YYYY").format("YYYY-MM-DD");
         $("#datepicker").val(datestring);
     });
     $("#input-preis").change(e => formatPreisInput(e.target));
@@ -844,7 +844,7 @@ function saveEntryRequest(entry) {
 }
 
 function clearInput() {
-    $('#input-datum, #input-kategorie, #input-art, #input-preis, #input-beschreibung').val("");
+    $('#input-datum, #input-kategorie, #input-art, #input-preis, #input-beschreibung, #datepicker').val("");
     $('#input-datum').focus();
 }
 
@@ -859,7 +859,7 @@ function addSpendings(preis) {
 }
 
 function setSpendings(amount) {
-    $('#spendings').html("Ausgaben " + Math.round(amount) + " €");
+    $('#spendings').html("Ausgaben " + Math.round(amount) + "&nbsp;€");
     document.querySelector("#spendings").setAttribute("data-amount", amount);
 }
 
@@ -899,7 +899,7 @@ function addEarnings(preis) {
 }
 
 function setEarnings(amount) {
-    $('#earnings').html("Einnahmen " + Math.round(amount) + " €");
+    $('#earnings').html("Einnahmen " + Math.round(amount) + "&nbsp;€");
     document.querySelector("#earnings").setAttribute("data-amount", amount);
 }
 
