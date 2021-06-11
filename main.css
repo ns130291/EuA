@@ -74,7 +74,7 @@ input {
 }
 
 header {
-    overflow: auto;
+    /*overflow: auto;*/
 }
 
 
@@ -147,23 +147,88 @@ select {
     cursor: pointer;
 }
 
+:root {
+    --bar-padding: 5px;
+    --bar-el-padding-tb: 3px;
+    --bar-el-padding-lr: 8px;
+    --bar-el-br: 5px;
+    --bar-el-brdr-w: 1px;
+    --bar-el-margin: var(--bar-padding);
+}
+
+#menu {
+    position: relative;
+    margin-left: var(--bar-el-margin);
+}
+
+.bar-menu {
+    display: none;
+    position: absolute;
+    right: calc(var(--bar-el-brdr-w) * -1);
+    top: calc(var(--bar-el-brdr-w) * -1);
+    padding: 0;
+    overflow: hidden;
+}
+
+.bar-menu a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.bar-menu a:visited {
+    color: inherit;
+}
+
 .bar {
     background-color: #4bb1ff;
-    padding: 5px;
+    padding: var(--bar-padding) var(--bar-padding) 0 var(--bar-padding);
+    display: flex;
+    align-items: flex-start;
+}
+
+.bar-sub {
+    flex-grow: 1;
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.bar-collection {
+    display: flex;
+}
+
+bar {
+    background-color: white;
+    border-radius: var(--bar-el-br);
+    padding: var(--bar-el-padding-tb) var(--bar-el-padding-lr);
+    border: var(--bar-el-brdr-w) solid #666666;
+    line-height: 23px;
+}
+
+bar div {
+    white-space: nowrap;
+    padding: 0 var(--bar-el-padding-lr);
+}
+
+bar div:first-of-type {
+    padding-top: var(--bar-el-padding-tb);
+}
+
+bar div:last-of-type {
+    padding-bottom: var(--bar-el-padding-tb);
+}
+
+bar div:hover {
+    background-color: #dddddd;
 }
 
 .bar-element {
     display: inline-block;
-    background-color: white;
-    border-radius: 5px;
-    padding: 3px 8px;
-    margin-right: 5px;
+    margin-right: var(--bar-el-margin);
     min-width: 25px;
     text-align: center;
-    border: 1px solid #666666;
-    line-height: 23px;
+    margin-bottom: var(--bar-el-margin);
 }
 
 .bar-element:last-child {
@@ -177,6 +242,7 @@ select {
 
 .spacer {
     flex-grow: 1;
+    min-width: var(--bar-el-margin);
 }
 
 .merge-start {
@@ -187,6 +253,10 @@ select {
 
 .merge-end {
     border-radius: 0 5px 5px 0;
+}
+
+#previous-month, #next-month {
+    line-height: initial;
 }
 
 .active {
@@ -691,6 +761,9 @@ content {
     }
     #opendatepicker{
         display: none !important;
+    }
+    .bar-sub {
+        justify-content: space-around;
     }
 }
 

@@ -30,6 +30,8 @@ var chart = null;
 var currentView = "spendings";
 var mainLoaded = false;
 
+var openMenuID = '';
+
 $(document).ready(function () {
     mainLoaded = true;
     $("#next-month").click(naechsterMonat);
@@ -50,6 +52,13 @@ $(document).ready(function () {
         $("#spendings").removeClass("active");
         $("#earnings").addClass("active");
         switchView("earnings");
+    });
+    
+    document.querySelector('#menu').addEventListener('click', ev => {
+        document.body.addEventListener('click', closeMenu);
+        openMenuID = 'menu-overlay';
+        document.querySelector('#menu-overlay').style.setProperty('display', 'block');
+        ev.stopPropagation();
     });
 
     if (!hasWebkitDatepicker('#datepicker')) {
@@ -76,6 +85,14 @@ $(document).ready(function () {
     $(window).on('popstate', back);
     processURL();
 });
+
+function closeMenu(ev) {
+    if (ev.target.id != openMenuID) {
+        document.body.removeEventListener('click', closeMenu);
+        openMenuID = '';
+        document.querySelector('#menu-overlay').style.removeProperty('display'); 
+    }
+}
 
 function switchView(view) {
     if (currentView !== view) {

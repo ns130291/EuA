@@ -128,6 +128,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 } else {
     session_start();
+    
+    if (isset($_GET['logout'])) {
+        session_destroy();
+        $_SESSION = array();
+        session_start();
+    }
+    
     if ($_SESSION) {
         if (isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']) {
             $hostname = $_SERVER['HTTP_HOST'];

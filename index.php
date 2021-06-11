@@ -30,13 +30,27 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
         <div id="content">
             <header id="header">
                 <div id="navbar" class="bar">
-                    <div id="previous-month" class="bar-element">&#8592;</div>
-                    <div id="month" class="bar-element">Laden...</div>
-                    <div id="next-month" class="bar-element">&#8594;</div>
-                    <div class="spacer"></div>
-                    <div id="earnings" class="bar-element merge-start">Einnahmen &#x2010; €</div>
-                    <div id="spendings" class="bar-element merge-end active">Ausgaben &#x2010; €</div>
-                    <div id="switch-to-stats" class="bar-element">Statistiken</div>
+                    <div class="bar-sub">
+                        <div class="bar-collection">
+                            <bar id="previous-month" class="bar-element">&#8592;</bar>
+                            <bar id="month" class="bar-element">Laden...</bar>
+                            <bar id="next-month" class="bar-element">&#8594;</bar>
+                        </div>
+                        <div class="bar-collection">
+                            <bar id="earnings" class="bar-element merge-start">Einnahmen &#x2010;&nbsp;€</bar>
+                            <bar id="spendings" class="bar-element merge-end active">Ausgaben &#x2010;&nbsp;€</bar>
+                        </div>
+                        <!--<bar id="switch-to-stats" class="bar-element">Statistiken</bar>-->
+                    </div>
+                    <bar id="menu" class="bar-element">
+                        <span>☰</span>
+                        <bar id="menu-overlay" class="bar-menu">
+                            <div id="switch-to-stats">Statistiken</div>
+                            <div>Papierkorb</div>
+                            <div>‹ Konto wechseln</div>
+                            <div><a href="login.php?logout">Abmelden</a></div>
+                        </bar>
+                    </bar>
                 </div>
             </header>
             <section id="section-ausgabe">
