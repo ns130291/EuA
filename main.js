@@ -29,11 +29,50 @@ var datum = moment();
 var chart = null;
 var currentView = "spendings";
 var mainLoaded = false;
+var pendingUpdate = false;
 
 var openMenuID = '';
 
 $(document).ready(function () {
     mainLoaded = true;
+    
+    window.visualViewport.addEventListener("resize", ev => {
+        if (pendingUpdate) {
+            return;
+        }
+        pendingUpdate = true;
+        
+        requestAnimationFrame(() => {
+            pendingUpdate = false;
+            let content = document.querySelector('#content');
+            if (content) {
+                let viewport = ev.target;
+                content.style.height = viewport.height + "px";
+                console.log("Viewport Height " + viewport.height);
+            }
+        });
+    });
+    
+    window.visualViewport.addEventListener("scroll", ev => {
+        requestAnimationFrame(() => {
+            window.scroll({
+                top: 0,
+                left: 0,
+                behavior: 'instant'
+            });
+        });
+    });
+    
+    document.querySelectorAll("input").forEach(el => {
+        // https://gist.github.com/kiding/72721a0553fa93198ae2bb6eefaa3299
+        el.addEventListener("focus", ev => {
+            requestAnimationFrame(() => {
+                el.style.opacity = 0;
+                setTimeout(() => el.style.opacity = 1, 10);
+            });
+        });
+    });
+    
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#switch-to-stats").click(showStatsView);

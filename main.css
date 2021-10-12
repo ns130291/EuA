@@ -57,6 +57,7 @@ html,
 body {
     height: 100%;
     margin: 0;
+    overflow: hidden;
 }
 
 body,
@@ -496,6 +497,11 @@ content {
     border: none;
     padding: 0;
     width: calc(100% - 2px);
+    outline: none;
+}
+
+.td input:focus-visible {
+    outline: none;
 }
 
 .tr-edit input {
