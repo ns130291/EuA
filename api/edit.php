@@ -28,13 +28,13 @@ if (isset($_POST["datum"])) {
 }
 if (isset($_POST["kategorie"])) { 
     if ($_POST["kategorie"] !== "") {
-        $set .= ' kategorie="' . $mysqli->real_escape_string(urldecode($_POST["kategorie"])) . '",';
+        $set .= ' kategorie="' . trim($mysqli->real_escape_string(urldecode($_POST["kategorie"]))) . '",';
     } else {
         $set .= ' kategorie=null,';
     }
 }
 if (isset($_POST["art"])) {
-    $set .= ' art="' . $mysqli->real_escape_string(urldecode($_POST["art"])) . '",';
+    $set .= ' art="' . trim($mysqli->real_escape_string(urldecode($_POST["art"]))) . '",';
 }
 if (isset($_POST["preis"])) {
     $set .= ' preis=' . $mysqli->real_escape_string($_POST["preis"]) . ',';

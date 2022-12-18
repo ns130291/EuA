@@ -5,11 +5,11 @@
 $datum = '"' . $_POST["datum"] . '"';
 $kategorie = "";
 if (isset($_POST["kategorie"]) && $_POST["kategorie"] !== "") {
-    $kategorie = '"' . $mysqli->real_escape_string(urldecode($_POST["kategorie"])) . '"';
+    $kategorie = '"' . trim($mysqli->real_escape_string(urldecode($_POST["kategorie"]))) . '"';
 } else {
     $kategorie = "null";
 }
-$art = '"' . $mysqli->real_escape_string(urldecode($_POST["art"])) . '"';
+$art = '"' . trim($mysqli->real_escape_string(urldecode($_POST["art"]))) . '"';
 $preis = $_POST["preis"];
 $beschreibung = "";
 if (isset($_POST["beschreibung"]) && $_POST["beschreibung"] !== "") {
