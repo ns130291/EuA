@@ -35,13 +35,13 @@ var openMenuID = '';
 
 $(document).ready(function () {
     mainLoaded = true;
-    
+
     window.visualViewport.addEventListener("resize", ev => {
         if (pendingUpdate) {
             return;
         }
         pendingUpdate = true;
-        
+
         requestAnimationFrame(() => {
             pendingUpdate = false;
             let content = document.querySelector('#content');
@@ -52,7 +52,7 @@ $(document).ready(function () {
             }
         });
     });
-    
+
     window.visualViewport.addEventListener("scroll", ev => {
         requestAnimationFrame(() => {
             window.scroll({
@@ -62,7 +62,7 @@ $(document).ready(function () {
             });
         });
     });
-    
+
     document.querySelectorAll("input").forEach(el => {
         // https://gist.github.com/kiding/72721a0553fa93198ae2bb6eefaa3299
         el.addEventListener("focus", ev => {
@@ -72,7 +72,7 @@ $(document).ready(function () {
             });
         });
     });
-    
+
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#switch-to-stats").click(showStatsView);
@@ -92,7 +92,7 @@ $(document).ready(function () {
         $("#earnings").addClass("active");
         switchView("earnings");
     });
-    
+
     document.querySelector('#menu').addEventListener('click', ev => {
         document.body.addEventListener('click', closeMenu);
         openMenuID = 'menu-overlay';
@@ -129,7 +129,7 @@ function closeMenu(ev) {
     if (ev.target.id != openMenuID) {
         document.body.removeEventListener('click', closeMenu);
         openMenuID = '';
-        document.querySelector('#menu-overlay').style.removeProperty('display'); 
+        document.querySelector('#menu-overlay').style.removeProperty('display');
     }
 }
 
@@ -195,14 +195,25 @@ function overlayCharts() {
                 $('#select').children().remove();
                 $('#select-mobile > select').children().remove();
                 var ausgaben = json.ausgaben;
+
+                let yearlySums = {};
+                ausgaben.forEach(entry => {
+                    let year = entry.jahr;
+                    let preis = parseFloat(entry.preis); // Convert preis to a number
+                    if (!yearlySums[year]) {
+                        yearlySums[year] = 0;
+                    }
+                    yearlySums[year] += preis;
+                });
+
                 var currentYear = 0;
                 for (var x in ausgaben) {
                     var tempDate = moment([ausgaben[x].jahr, ausgaben[x].monat - 1]);
                     if (currentYear === 0 || currentYear > tempDate.year()) {
                         currentYear = tempDate.year();
-                        overlayAddSelect(currentYear, currentYear);
+                        overlayAddSelect(currentYear, currentYear, formatPreis(Math.floor(yearlySums[currentYear]), false));
                     }
-                    overlayAddSelect(tempDate.format('MMMM'), currentYear, ausgaben[x].preis.split('.')[0] + ' €', tempDate.month() + 1);
+                    overlayAddSelect(tempDate.format('MMMM'), currentYear,formatPreis(Math.floor(ausgaben[x].preis), false), tempDate.month() + 1);
                 }
                 $('#select .select-element').first().addClass('active');
                 $('#select-mobile > select > optgroup').first().children('option').first().attr('selected', 'selected');
@@ -252,15 +263,15 @@ function overlayCharts() {
 }
 
 function overlayAddSelect(label, year, spendings, month) {
-    if (spendings === undefined) { // year chart
-        $('#select').append($('<div>').addClass('select-element year').html(label).attr('data-year', year).click(function (e) {
+    if (month === undefined) { // year chart
+        $('#select').append($('<div>').addClass('select-element year').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-year', year).click(function (e) {
             $('#select').children().removeClass('active');
             $(e.target).addClass('active');
             yearChart($(e.target).attr('data-year'));
             $('#add-chart').removeClass('hidden');
         }));
         $('#select-mobile > select').append($('<optgroup>').attr('label', label));
-        $('#select-mobile > select > optgroup[label="' + label + '"]').append($('<option>').html('Übersicht ' + label).attr('data-year', year));
+        $('#select-mobile > select > optgroup[label="' + label + '"]').append($('<option>').html('Übersicht ' + label + ' - ' + spendings).attr('data-year', year));
     } else { // month chart
         $('#select').append($('<div>').addClass('select-element').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-month', month).attr('data-year', year).click(function (e) {
             $('#select').children().removeClass('active');
@@ -892,7 +903,7 @@ function clearInput() {
  */
 function addSpendings(preis) {
     var amount = parseFloat(json['summeausgaben']);
-    amount += parseFloat(preis); //TODO why parseFloat? 
+    amount += parseFloat(preis); //TODO why parseFloat?
     setSpendings(amount);
     json['summeausgaben'] = amount + "";
 }
@@ -932,7 +943,7 @@ function changeSpending(params) {
 
 function addEarnings(preis) {
     var amount = parseFloat(json['summeeinnahmen']);
-    amount += parseFloat(preis); //TODO why parseFloat? 
+    amount += parseFloat(preis); //TODO why parseFloat?
     setEarnings(amount);
     json['summeeinnahmen'] = amount + "";
 }
@@ -1023,7 +1034,7 @@ function editEntry(e) {
 
     let dataID = ausgabenElement.getAttribute('data-id');
     let data = getDataFromJSON(dataID);
-    console.log(data);  // TODO remove 
+    console.log(data);  // TODO remove
 
     hideEditControls(el.parentNode);
 
@@ -1068,7 +1079,7 @@ function cancelEditEntry(e) {
 
     let dataID = trAusgabe.getAttribute('data-id');
     let data = getDataFromJSON(dataID);
-    console.log(data);  // TODO remove 
+    console.log(data);  // TODO remove
 
     [...trAusgabe.querySelectorAll('div.td')]
             .forEach(function (td) {
@@ -1100,7 +1111,7 @@ function updateEntry(e) {
 
     let dataID = ausgabenElement.getAttribute('data-id');
     let oldData = getDataFromJSON(dataID);
-    console.log(oldData);  // TODO remove 
+    console.log(oldData);  // TODO remove
 
     var params = {};
 
@@ -1160,24 +1171,24 @@ function updateEntry(e) {
         $.post("api.php", params).done(function (result) {
             var json = JSON.parse(result);
             if (json['error'] === undefined) {
-                                
+
                 if(params.datum !== undefined) {
                     oldData.datum = params.datum;
-                }                
+                }
                 if(params.kategorie !== undefined) {
                     oldData.kategorie = params.kategorie;
-                }                
+                }
                 if(params.art !== undefined) {
                     oldData.art = params.art;
-                }                
+                }
                 if(params.preis !== undefined) {
                     oldData.preis = params.preis;
-                }                
+                }
                 if(params.beschreibung !== undefined) {
                     oldData.beschreibung = params.beschreibung;
                 }
                 console.log(getDataFromJSON(dataID));
-                
+
                 var sameMonth = true;
                 if (params.datum !== undefined) {
                     var datumM;
@@ -1306,12 +1317,17 @@ function convertPreisToNumber(preis) {
         preis = preis.replace(',', '');
     } else if (preis.lastIndexOf('.') < preis.lastIndexOf(',')) { // e.g 1.000,543
         preis = preis.replace('.', '').replace(',', '.');
-    } // else -> both must be -1, therefore no '.' or ',' 
+    } // else -> both must be -1, therefore no '.' or ','
     return parseFloat(preis);
 }
 
-function formatPreis(preis) {
-    return new Intl.NumberFormat(undefined, {style: 'currency', currency: 'EUR'}).format(preis);
+function formatPreis(preis, withDecimal = true) {
+    const options = { style: 'currency', currency: 'EUR' };
+    if (!withDecimal) {
+        options.minimumFractionDigits = 0;
+        options.maximumFractionDigits = 0;
+    }
+    return new Intl.NumberFormat(undefined, options).format(preis);
 }
 
 function formatPreisWithoutSymbol(preis) {
@@ -1366,4 +1382,3 @@ function getDecimalSeparator(locale) {
             .find(part => part.type === 'decimal')
             .value;
 }
-            
