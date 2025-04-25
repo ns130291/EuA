@@ -37,6 +37,18 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                             <bar id="next-month" class="bar-element">&#8594;</bar>
                         </div>
                         <div class="bar-collection">
+                            <bar id="konto-selection" class="bar-element">
+                                <span id="konto-name">Laden...</span>
+                                <div class="dropdown-indicator">🞃</div>
+                                <bar id="konto-selection-overlay">
+                                    <div class="dropdown-indicator">🞁</div>
+                                    <!-- <div>abc</div>
+                                    <div>def</div>
+                                    <div>ghi</div> -->
+                                </bar>
+                            </bar>
+                        </div>
+                        <div class="bar-collection">
                             <bar id="earnings" class="bar-element merge-start">Einnahmen &#x2010;&nbsp;€</bar>
                             <bar id="spendings" class="bar-element merge-end active">Ausgaben &#x2010;&nbsp;€</bar>
                         </div>
@@ -106,7 +118,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                 <div class="right" id="overlay-close">&times;</div>
                 <div id="select-mobile">
                     <select>
-                        
+
                     </select>
                 </div>
             </div>
@@ -125,7 +137,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                             <div id="chart-category-select">
                                 Weitere Diagramme:
                                 <select>
-                                    
+
                                 </select>
                             </div>
                             <div id="chart-category-add" class="bar-element">

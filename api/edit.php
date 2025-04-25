@@ -2,6 +2,9 @@
 
 !defined('SECURE') and exit;
 
+// Determine active konto
+$kontoid = isset($_SESSION['currentKonto']) ? $_SESSION['currentKonto'] : $_SESSION['defaultKonto'];
+
 $json = array();
 $sql;
 $sqlWhere;
@@ -11,14 +14,14 @@ if($_POST["entrytype"] === 'earnings'){
     }   
     $json["ideinnahme"] = $_POST["ideinnahme"];
     $sql = 'UPDATE eua.einnahme SET';
-    $sqlWhere = ' WHERE ideinnahme = ' . $mysqli->real_escape_string($_POST["ideinnahme"]) . ' AND konto = ' . $mysqli->real_escape_string($_SESSION['defaultKonto']) . ';';
+    $sqlWhere = ' WHERE ideinnahme = ' . $mysqli->real_escape_string($_POST["ideinnahme"]) . ' AND konto = ' . $mysqli->real_escape_string($kontoid) . ';';
 } else {
     if (!isset($_POST["idausgabe"])) {
         die('{"error":"server","msg":"Ausgaben ID fehlt"}');
     }
     $json["idausgabe"] = $_POST["idausgabe"];
     $sql = 'UPDATE eua.ausgabe SET';
-    $sqlWhere = ' WHERE idausgabe = ' . $mysqli->real_escape_string($_POST["idausgabe"]) . ' AND konto = ' . $mysqli->real_escape_string($_SESSION['defaultKonto']) . ';';
+    $sqlWhere = ' WHERE idausgabe = ' . $mysqli->real_escape_string($_POST["idausgabe"]) . ' AND konto = ' . $mysqli->real_escape_string($kontoid) . ';';
 }
 
 

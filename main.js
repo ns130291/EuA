@@ -123,6 +123,60 @@ $(document).ready(function () {
     $("#input").css("padding-right", scrollbarWidth);
     $(window).on('popstate', back);
     processURL();
+
+    // Account selection dropdown initialization
+    $.post('api.php', { action: 'get_accounts' }).done(function (resp) {
+        if (resp.error !== undefined) {
+            console.error('Error fetching accounts:', resp.error);
+            return;
+        }
+        var accounts = resp.accounts;
+        var current = resp.current;
+        var $overlay = $('#konto-selection-overlay');
+        $overlay.children().filter(':not(.dropdown-indicator)').remove();
+        var currentName = '';
+        accounts.forEach(function(acc) {
+            var $item = $('<div>')
+                .addClass('konto-item')
+                .attr('data-id', acc.idkonto)
+                .text(acc.name);
+            if (acc.idkonto == current) {
+                $item.addClass('active');
+                currentName = acc.name;
+            }
+            $overlay.append($item);
+        });
+        if (currentName) {
+            $('#konto-name').text(currentName);
+        }
+    });
+
+    // Show/hide account selection overlay
+    $('#konto-selection').click(function(ev) {
+        ev.stopPropagation();
+        $('#konto-selection-overlay').css('display', 'block');
+    });
+
+    // Hide overlay on outside click
+    $(document).click(function() {
+        $('#konto-selection-overlay').css('display', 'none');
+    });
+
+    // Handle account selection
+    $('#konto-selection-overlay').on('click', '.konto-item', function(ev) {
+        ev.stopPropagation();
+        var id = $(this).data('id');
+        var name = $(this).text();
+        $.post('api.php', {action: 'set_account', kontoid: id}).done(function(resp) {
+            if (resp.error !== undefined) {
+                console.error('Error setting account:', resp.error);
+                return;
+            }
+            $('#konto-name').text(name);
+            $('#konto-selection-overlay').css('display', 'none');
+            holeDaten();
+        });
+    });
 });
 
 function closeMenu(ev) {

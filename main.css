@@ -289,6 +289,34 @@ bar div:hover {
     -webkit-animation: open 1s;
 }
 
+#konto-selection {
+    position: relative;
+    width: 20ch;
+}
+
+#konto-selection-overlay {
+    display: none;
+    position: absolute;
+    right: calc(var(--bar-el-brdr-w) * -1);
+    top: calc(var(--bar-el-brdr-w) * -1);
+    padding: 0;
+    overflow: hidden;
+    /* width: calc((var(--bar-el-brdr-w) + var(--bar-el-padding-lr)) * 2 + 20ch); */
+    width: calc(var(--bar-el-padding-lr) * 2 + 20ch);
+}
+
+.dropdown-indicator {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: var(--bar-el-padding-tb) var(--bar-el-padding-lr);
+    border-radius: var(--bar-el-br);
+}
+
+.dropdown-indicator:hover {
+    background-color: transparent;
+}
+
 @-webkit-keyframes open {
     0% {
         width: 60px;

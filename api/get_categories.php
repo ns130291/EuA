@@ -2,10 +2,13 @@
 
 !defined('SECURE') and exit;
 
+// Determine active konto
+$kontoid = isset($_SESSION['currentKonto']) ? $_SESSION['currentKonto'] : $_SESSION['defaultKonto'];
+
 if(isset($_POST['mincount']) && is_numeric($_POST['mincount'])){
-    $result = $mysqli->query(sprintf('CALL eua.getCategories(%s, %s);', $_POST['mincount'], $_SESSION['defaultKonto']));
+    $result = $mysqli->query(sprintf('CALL eua.getCategories(%s, %s);', $_POST['mincount'], $kontoid));
 } else {
-    $result = $mysqli->query(sprintf('CALL eua.getCategories(0, %s);', $_SESSION['defaultKonto']));
+    $result = $mysqli->query(sprintf('CALL eua.getCategories(0, %s);', $kontoid));
 }
 
 if (!$result) {

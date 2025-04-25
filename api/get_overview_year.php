@@ -7,7 +7,9 @@ if (!isset($_POST["jahr"])) {
 }
 $jahr = $_POST["jahr"];
 
-$result = $mysqli->query(sprintf('CALL eua.jahresuebersicht(%s, %s);', $jahr, $_SESSION['defaultKonto']));
+// Determine active konto: use currentKonto if set, otherwise defaultKonto
+$kontoid = isset($_SESSION['currentKonto']) ? $_SESSION['currentKonto'] : $_SESSION['defaultKonto'];
+$result = $mysqli->query(sprintf('CALL eua.jahresuebersicht(%s, %s);', $jahr, $kontoid));
 
 if (!$result) {
     echo '{"error":"server","msg":"Keine Ergebnisse"}';

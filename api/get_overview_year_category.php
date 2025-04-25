@@ -2,6 +2,9 @@
 
 !defined('SECURE') and exit;
 
+// Determine active konto
+$kontoid = isset($_SESSION['currentKonto']) ? $_SESSION['currentKonto'] : $_SESSION['defaultKonto'];
+
 if (!isset($_POST["jahr"])) {
     die('{"error":"server","msg":"Jahr fehlt"}');
 }
@@ -13,9 +16,9 @@ if (!isset($_POST["kategorie"])) {
 $kategorie = $_POST["kategorie"];
 
 if($kategorie == "null"){
-    $result = $mysqli->query(sprintf('CALL eua.jahresuebersichtKategorie(%s, NULL, %s);', $jahr, $_SESSION['defaultKonto']));    
+    $result = $mysqli->query(sprintf('CALL eua.jahresuebersichtKategorie(%s, NULL, %s);', $jahr, $kontoid));    
 } else {
-    $result = $mysqli->query(sprintf('CALL eua.jahresuebersichtKategorie(%s, "%s", %s);', $jahr, $kategorie, $_SESSION['defaultKonto']));
+    $result = $mysqli->query(sprintf('CALL eua.jahresuebersichtKategorie(%s, "%s", %s);', $jahr, $kategorie, $kontoid));
 }
 
 if (!$result) {

@@ -2,13 +2,16 @@
 
 !defined('SECURE') and exit;
 
+// Determine active konto
+$kontoid = isset($_SESSION['currentKonto']) ? $_SESSION['currentKonto'] : $_SESSION['defaultKonto'];
+
 if (!isset($_POST["jahr"]) || !isset($_POST["monat"])) {
     die('{"error":"server","msg":"Jahr/Monat fehlt"}');
 }
 $jahr = $_POST["jahr"];
 $monat = $_POST["monat"];
 
-$result = $mysqli->query(sprintf('CALL eua.monatsuebersicht(%s, %s, %s);', $monat, $jahr, $_SESSION['defaultKonto']));
+$result = $mysqli->query(sprintf('CALL eua.monatsuebersicht(%s, %s, %s);', $monat, $jahr, $kontoid));
 
 if (!$result) {
     echo '{"error":"server","msg":"Keine Ergebnisse"}';

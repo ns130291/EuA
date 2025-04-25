@@ -12,15 +12,18 @@ if (!isset($_POST["year"]) || !isset($_POST["month"])) {
     die('{"error":"server","msg":"Jahr/Monat fehlt"}');
 }
 
-$month = filter_input(INPUT_POST, 'month');
-$year = filter_input(INPUT_POST, 'year');
+    $month = filter_input(INPUT_POST, 'month');
+    $year = filter_input(INPUT_POST, 'year');
+
+// Determine active konto: use currentKonto if set, otherwise defaultKonto
+$kontoid = isset($_SESSION['currentKonto']) ? $_SESSION['currentKonto'] : $_SESSION['defaultKonto'];
 
 $startDate = $year . "-" . $month . "-01";
 $endDate = lastday($month, $year);
 
 
 // Ausgaben
-$result = $mysqli->query(sprintf('CALL eua.holeAusgabenMonat("%s","%s",%s);', $startDate, $endDate, $_SESSION['defaultKonto']));
+$result = $mysqli->query(sprintf('CALL eua.holeAusgabenMonat("%s","%s",%s);', $startDate, $endDate, $kontoid));
 
 if (!$result) {
     die('{"error":"server","msg":"Keine Ergebnisse (Ausgaben)"}');
@@ -40,7 +43,7 @@ $mysqli->close();
 $mysqli = new mysqli('mysql', 'eua', NULL, 'eua');
 $mysqli->set_charset('utf8');
 
-$result = $mysqli->query(sprintf('CALL eua.summeAusgabenMonat("%s","%s",%s);', $startDate, $endDate, $_SESSION['defaultKonto']));
+$result = $mysqli->query(sprintf('CALL eua.summeAusgabenMonat("%s","%s",%s);', $startDate, $endDate, $kontoid));
 
 if (!$result) {
     die('{"error":"server","msg":"Keine Daten (Ausgaben) für diesem Monat: Summe fehlt:' . $mysqli->error . ' "}');
@@ -58,7 +61,7 @@ $mysqli->close();
 $mysqli = new mysqli('mysql', 'eua', NULL, 'eua');
 $mysqli->set_charset('utf8');
 
-$result = $mysqli->query(sprintf('CALL eua.holeEinnahmenMonat("%s","%s",%s);', $startDate, $endDate, $_SESSION['defaultKonto']));
+$result = $mysqli->query(sprintf('CALL eua.holeEinnahmenMonat("%s","%s",%s);', $startDate, $endDate, $kontoid));
 
 if (!$result) {
     die('{"error":"server","msg":"Keine Ergebnisse (Einnahmen) ' . $mysqli->error . '"}');
@@ -77,7 +80,7 @@ $mysqli->close();
 $mysqli = new mysqli('mysql', 'eua', NULL, 'eua');
 $mysqli->set_charset('utf8');
 
-$result = $mysqli->query(sprintf('CALL eua.summeEinnahmenMonat("%s","%s",%s);', $startDate, $endDate, $_SESSION['defaultKonto']));
+$result = $mysqli->query(sprintf('CALL eua.summeEinnahmenMonat("%s","%s",%s);', $startDate, $endDate, $kontoid));
 
 if (!$result) {
     die('{"error":"server","msg":"Keine Daten (Einnahmen) für diesem Monat: Summe fehlt:' . $mysqli->error . ' "}');

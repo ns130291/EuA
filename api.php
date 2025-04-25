@@ -53,6 +53,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'get_categories':
             require 'api/get_categories.php';
             break;
+        case 'get_accounts':
+            require 'api/get_accounts.php';
+            break;
+        case 'set_account':
+            require 'api/set_account.php';
+            break;
 
         default:
             $json = array();

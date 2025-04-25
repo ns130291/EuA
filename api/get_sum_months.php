@@ -2,7 +2,10 @@
 
 !defined('SECURE') and exit;
 
-$result = $mysqli->query(sprintf('CALL eua.summeAusgabenMonate(%s);', $_SESSION['defaultKonto']));
+// Determine active konto
+$kontoid = isset($_SESSION['currentKonto']) ? $_SESSION['currentKonto'] : $_SESSION['defaultKonto'];
+
+$result = $mysqli->query(sprintf('CALL eua.summeAusgabenMonate(%s);', $kontoid));
 
 if (!$result) {
     echo '{"error":"server","msg":"Keine Ergebnisse"}';

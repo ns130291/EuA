@@ -2,6 +2,9 @@
 
 !defined('SECURE') and exit;
 
+// Determine active konto
+$kontoid = isset($_SESSION['currentKonto']) ? $_SESSION['currentKonto'] : $_SESSION['defaultKonto'];
+
 if($_POST["entrytype"] === 'earnings'){
     if (!isset($_POST["ideinnahme"])) {
         die('{"error":"server","msg":"Einnahmen ID fehlt"}');
@@ -9,7 +12,7 @@ if($_POST["entrytype"] === 'earnings'){
     
     $ideinnahme = $_POST["ideinnahme"];
 
-    $result = $mysqli->query(sprintf('CALL eua.einnahmeLöschen(%s, %s);', $ideinnahme, $_SESSION['defaultKonto']));
+    $result = $mysqli->query(sprintf('CALL eua.einnahmeLöschen(%s, %s);', $ideinnahme, $kontoid));
 
     $json = array();
 
@@ -29,7 +32,7 @@ if($_POST["entrytype"] === 'earnings'){
     
     $idausgabe = $_POST["idausgabe"];
 
-    $result = $mysqli->query(sprintf('CALL eua.ausgabeLöschen(%s, %s);', $idausgabe, $_SESSION['defaultKonto']));
+    $result = $mysqli->query(sprintf('CALL eua.ausgabeLöschen(%s, %s);', $idausgabe, $kontoid));
 
     $json = array();
 

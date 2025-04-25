@@ -2,6 +2,9 @@
 
 !defined('SECURE') and exit;
 
+// Determine active konto
+$kontoid = isset($_SESSION['currentKonto']) ? $_SESSION['currentKonto'] : $_SESSION['defaultKonto'];
+
 $datum = '"' . $_POST["datum"] . '"';
 $kategorie = "";
 if (isset($_POST["kategorie"]) && $_POST["kategorie"] !== "") {
@@ -18,10 +21,11 @@ if (isset($_POST["beschreibung"]) && $_POST["beschreibung"] !== "") {
     $beschreibung = "null";
 }
 
+$query = '';
 if($_POST["entrytype"] === 'earnings') {
-    $query = sprintf('CALL eua.einnahmeSpeichern(%s,%s,%s,%s,%s,%s);', $datum, $kategorie, $art, $preis, $beschreibung, $_SESSION['defaultKonto']);
+    $query = sprintf('CALL eua.einnahmeSpeichern(%s,%s,%s,%s,%s,%s);', $datum, $kategorie, $art, $preis, $beschreibung, $kontoid);
 } else {
-    $query = sprintf('CALL eua.ausgabeSpeichern(%s,%s,%s,%s,%s,%s);', $datum, $kategorie, $art, $preis, $beschreibung, $_SESSION['defaultKonto']);
+    $query = sprintf('CALL eua.ausgabeSpeichern(%s,%s,%s,%s,%s,%s);', $datum, $kategorie, $art, $preis, $beschreibung, $kontoid);
 }
 
 $result = $mysqli->query($query);
