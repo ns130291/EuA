@@ -59,6 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'set_account':
             require 'api/set_account.php';
             break;
+        case 'get_trashed':
+            require 'api/get_trashed.php';
+            break;
+        case 'restore':
+            require 'api/restore.php';
+            break;
 
         default:
             $json = array();

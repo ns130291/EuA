@@ -155,6 +155,7 @@ select {
     --bar-el-br: 5px;
     --bar-el-brdr-w: 1px;
     --bar-el-margin: var(--bar-padding);
+    --bar-line-height: 23px;
 }
 
 #menu {
@@ -204,7 +205,7 @@ bar {
     border-radius: var(--bar-el-br);
     padding: var(--bar-el-padding-tb) var(--bar-el-padding-lr);
     border: var(--bar-el-brdr-w) solid #666666;
-    line-height: 23px;
+    line-height: var(--bar-line-height);
 }
 
 bar div {
@@ -305,6 +306,11 @@ bar div:hover {
     width: calc(var(--bar-el-padding-lr) * 2 + 20ch);
 }
 
+#konto-selection-overlay > div {
+    padding: var(--bar-el-padding-tb) var(--bar-el-padding-lr);
+    height: var(--bar-line-height);
+}
+
 .dropdown-indicator {
     position: absolute;
     right: 0;
@@ -387,7 +393,8 @@ bar div:hover {
 .remove,
 .edit,
 .cancel,
-.update {
+.update,
+.restore {
     cursor: pointer;
     display: inline-block;
     border: 1px solid transparent;
@@ -413,7 +420,8 @@ bar div:hover {
     color: #D40000;
 }
 
-.edit:hover {
+.edit:hover,
+.restore:hover {
     color: #4BB1FF;
 }
 
@@ -596,7 +604,7 @@ content {
 }
 
 .td-preis {
-    width: 7ch;
+    width: 8ch;
     flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
@@ -697,11 +705,12 @@ content {
     display: none;
     background-color: #4BB1FF;
     height: 100%;
-    overflow-x: hidden;
+    /* overflow-x: hidden; */
+    flex-direction: column;
     /* TODO: optimize, maybe scroll select list */
 }
 
-#overlay-close {
+/* #overlay-close {
     margin: 5px;
     background-color: white;
     border-radius: 5px;
@@ -709,7 +718,7 @@ content {
     text-align: center;
     border: 1px solid #666666;
     min-width: 20px;
-}
+} */
 
 #overlay-close:hover {
     cursor: pointer;
@@ -717,6 +726,7 @@ content {
 
 #overlay-content {
     padding: 0 5px 5px 5px;
+    overflow-y: scroll;
 }
 
 #select {
@@ -736,6 +746,12 @@ content {
     background-color: white;
     width: 100%;
     clear: right;
+    flex-grow: 1;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
 }
 
 #details {
@@ -767,6 +783,18 @@ content {
 
 .preload-symbol {
     font-family: 'nsvb-symbol';
+}
+
+#trash-section {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    overflow-y: auto;
+}
+
+#trash-list {
+    overflow-y: scroll;
+    flex-grow: 1;
 }
 
 @media (min-width:400px) {
@@ -862,6 +890,7 @@ content {
         width: 201px;
         margin: 10px 0;
         /*margin-right: 20px;*/
+        z-index: 1;
     }
     .select-element {
         padding: 10px;
@@ -888,8 +917,8 @@ content {
     }
     #stats-wrapper {
         display: block;
-        margin-left: 200px;
         padding: 10px 15px;
         width: auto;
+        margin-left: -1px;
     }
 }

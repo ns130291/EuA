@@ -39,12 +39,11 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                         <div class="bar-collection">
                             <bar id="konto-selection" class="bar-element">
                                 <span id="konto-name">Laden...</span>
-                                <div class="dropdown-indicator">🞃</div>
+                                <div class="dropdown-indicator icon-down-dir"></div>
                                 <bar id="konto-selection-overlay">
-                                    <div class="dropdown-indicator">🞁</div>
-                                    <!-- <div>abc</div>
-                                    <div>def</div>
-                                    <div>ghi</div> -->
+                                    <div id="konto-selection-overlay-close">
+                                        <div class="dropdown-indicator icon-up-dir"></div>
+                                    </div>
                                 </bar>
                             </bar>
                         </div>
@@ -58,8 +57,8 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                         <span>☰</span>
                         <bar id="menu-overlay" class="bar-menu">
                             <div id="switch-to-stats">Statistiken</div>
-                            <div>Papierkorb</div>
-                            <div>‹ Konto wechseln</div>
+                            <div id="switch-to-trash">Papierkorb</div>
+                            <!-- <div>‹ Konto wechseln</div> -->
                             <div><a href="login.php?logout">Abmelden</a></div>
                         </bar>
                     </bar>
@@ -113,40 +112,6 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                 </form>
             </section>
         </div>
-        <div id="overlay">
-            <div class="cf">
-                <div class="right" id="overlay-close">&times;</div>
-                <div id="select-mobile">
-                    <select>
-
-                    </select>
-                </div>
-            </div>
-            <div id="overlay-content">
-                <div id="select" class="left"></div>
-                <div id="stats-wrapper" class="cf">
-                    <div>
-                        <div id="details">
-                            Details &#8594;
-                        </div>
-                    </div>
-                    <div id="stats">
-                        <div class="chart"></div>
-                        <div id="additional-charts"></div>
-                        <div class="hidden" id="add-chart">
-                            <div id="chart-category-select">
-                                Weitere Diagramme:
-                                <select>
-
-                                </select>
-                            </div>
-                            <div id="chart-category-add" class="bar-element">
-                                Hinzufügen
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div id="overlay"></div>
     </body>
 </html>

@@ -30,6 +30,7 @@ var chart = null;
 var currentView = "spendings";
 var mainLoaded = false;
 var pendingUpdate = false;
+var dataDirty = false;
 
 var openMenuID = '';
 
@@ -76,8 +77,7 @@ $(document).ready(function () {
     $("#next-month").click(naechsterMonat);
     $("#previous-month").click(vorherigerMonat);
     $("#switch-to-stats").click(showStatsView);
-    $("#overlay-close").click(showDataView);
-    $('#chart-category-add').click(addChart);
+    $("#switch-to-trash").click(showTrashView);
     $("#input-form").submit(function (e) {
         saveEntry();
         e.preventDefault();
@@ -133,7 +133,7 @@ $(document).ready(function () {
         var accounts = resp.accounts;
         var current = resp.current;
         var $overlay = $('#konto-selection-overlay');
-        $overlay.children().filter(':not(.dropdown-indicator)').remove();
+        $overlay.children().filter(':not(#konto-selection-overlay-close)').remove();
         var currentName = '';
         accounts.forEach(function(acc) {
             var $item = $('<div>')
@@ -162,6 +162,11 @@ $(document).ready(function () {
         $('#konto-selection-overlay').css('display', 'none');
     });
 
+    $('#konto-selection-overlay-close').click(function (ev) {
+        ev.stopPropagation();
+        $('#konto-selection-overlay').css('display', 'none');
+    });
+
     // Handle account selection
     $('#konto-selection-overlay').on('click', '.konto-item', function(ev) {
         ev.stopPropagation();
@@ -174,6 +179,8 @@ $(document).ready(function () {
             }
             $('#konto-name').text(name);
             $('#konto-selection-overlay').css('display', 'none');
+            $('#konto-selection-overlay .konto-item').removeClass('active');
+            $(`#konto-selection-overlay .konto-item[data-id="${id}"]`).addClass('active');
             holeDaten();
         });
     });
@@ -216,12 +223,19 @@ function back(e) {
 }
 
 function showDataView() {
+    if (dataDirty) {
+        loadingScreen();
+        holeDaten(function () {
+            dataDirty = false;
+        });
+    }
+
     let newElements = document.getElementById("ausgabenliste").querySelectorAll(".tr.ausgabe.new");
     for (let i = 0; i < newElements.length; i++) {
         newElements[i].classList.remove("new");
     }
     $('#overlay').css('display', 'none');
-    $('#content').css('display', 'flex');
+    $('#content').css('display', '');
     window.history.pushState({
         "year": datum.year(),
         "month": datum.month()
@@ -230,13 +244,157 @@ function showDataView() {
 
 function showStatsView() {
     $('#content').css('display', 'none');
-    $('#overlay').css('display', 'block');
+    let overlay = $('#overlay');
+    overlay.empty();
+    createStatsElements();
+    overlay.css('display', 'flex');
     window.history.pushState({
         "year": datum.year(),
         "month": datum.month(),
         "statistics": ""
     }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&statistics");
     overlayCharts();
+}
+
+function createStatsElements() {
+    const htmlString = `
+        <div id="stats-navbar" class="bar">
+            <div id="select-mobile">
+                <select></select>
+            </div>
+            <div class="bar-sub">
+                <div id="stats-tabs" class="bar-collection">
+                </div>
+            </div>
+            <bar id="overlay-close" class="bar-element">×</bar>
+        </div>
+        <div id="overlay-content">
+            <div class="flex-row">
+                <div id="select"></div>
+                <div id="stats-wrapper">
+                    <div>
+                        <div id="details">Details &#8594;</div>
+                    </div>
+                    <div id="stats">
+                        <div class="chart"></div>
+                        <div id="additional-charts"></div>
+                        <div class="hidden" id="add-chart">
+                            <div id="chart-category-select">
+                                Weitere Diagramme:
+                                <select></select>
+                            </div>
+                            <div id="chart-category-add" class="bar-element">
+                                Hinzufügen
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.querySelector('#overlay').innerHTML = htmlString;
+    $("#overlay-close").click(showDataView);
+    $('#chart-category-add').click(addChart);
+}
+
+
+// Show trashed items view (Papierkorb)
+function showTrashView() {
+    $('#content').css('display', 'none');
+    let overlay = $('#overlay');
+    overlay.empty();
+    overlayTrash();
+    overlay.css('display', 'flex');
+    window.history.pushState({
+        year: datum.year(),
+        month: datum.month(),
+        trash: true
+    }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&trash");
+}
+// Load and display trash items in overlay
+function overlayTrash() {
+    let tabBar = $('<div id="trash-navbar" class="bar"></div>');
+
+    let subBar = $('<div class="bar-sub"></div>');
+    let trashIconBar = $('<bar class="bar-element icon-trash"></bar>')
+    var $tabs = $('<div id="trash-tabs" class="bar-collection"></div>');
+    var $tabA = $('<bar id="tab-ausgaben" class="bar-element merge-start active">Ausgaben</bar>');
+    var $tabE = $('<bar id="tab-einnahmen" class="bar-element merge-end">Einnahmen</bar>');
+
+    let closeButton = $('<bar id="overlay-close" class="bar-element">&times;</bar>');
+
+    $tabs.append($tabA).append($tabE);
+    subBar.append($tabs);
+    tabBar.append(trashIconBar).append(subBar).append(closeButton);
+    $('#overlay').append(tabBar).append('<section id="trash-section"></section>')
+    $("#overlay-close").click(showDataView);
+
+    // Fetch trashed entries
+    $.post('api.php', {action: 'get_trashed'}).done(function(data) {
+        var jsonTrash = JSON.parse(data);
+        if (jsonTrash.error) {
+            console.error('Error fetching trash:', jsonTrash.msg);
+            $('#trash-list').append($('<div>').text('Fehler beim Laden des Papierkorbs'));
+            return;
+        }
+        window.trashData = jsonTrash;
+        renderTrashList('ausgaben');
+    });
+    $tabE.click(function() {
+        $('#trash-tabs .bar-element').removeClass('active');
+        $(this).addClass('active');
+        renderTrashList('einnahmen');
+    });
+    $tabA.click(function() {
+        $('#trash-tabs .bar-element').removeClass('active');
+        $(this).addClass('active');
+        renderTrashList('ausgaben');
+    });
+}
+// Render trashed entries list for given type
+function renderTrashList(type) {
+    let items = window.trashData[type] || [];
+    let section = $('#trash-section');
+    // Header
+    var $header = $('<div class="th"></div>');
+    $header.append('<div class="td td-datum">Datum</div>');
+    $header.append('<div class="td td-kategorie">Kategorie</div>');
+    $header.append('<div class="td td-art">Art</div>');
+    $header.append('<div class="td td-preis">Preis</div>');
+    $header.append('<div class="td td-beschreibung">Beschreibung</div>');
+    $header.append('<div class="td td-optionen">Optionen</div>');
+    section.append($header).append($('<div id="trash-list"></div>'));
+    let list = $('#trash-list');
+    if (items.length === 0) {
+        list.append($('<div id="empty">').text('Kein Eintrag im Papierkorb für ' + (type === 'einnahmen' ? 'Einnahmen' : 'Ausgaben')));
+        return;
+    }
+    items.forEach(function(item) {
+        var idField = (type === 'einnahmen' ? 'ideinnahme' : 'idausgabe');
+        var $row = $('<div class="tr ausgabe"></div>').attr('data-id', item[idField]);
+        $row.append('<div class="td td-datum">' + dateToLocal(item.datum) + '</div>');
+        $row.append('<div class="td td-kategorie">' + (item.kategorie || '') + '</div>');
+        $row.append('<div class="td td-art">' + item.art + '</div>');
+        $row.append('<div class="td td-preis">' + formatPreis(item.preis) + '</div>');
+        $row.append('<div class="td td-beschreibung">' + (item.beschreibung || '') + '</div>');
+        var $opt = $('<div class="td td-optionen"></div>');
+        var $btn = $('<div class="restore icon-ccw" title="Wiederherstellen"></div>');
+        $btn.click(function() {
+            $.post('api.php', {action: 'restore', type: type, id: item[idField]}).done(function(resp) {
+                var jr = JSON.parse(resp);
+                if (jr.error) {
+                    alert('Fehler: ' + jr.msg);
+                } else {
+                    $row.remove();
+                    dataDirty = true;
+                }
+            });
+        });
+        $opt.append($btn);
+        $row.append($opt);
+        list.append($row);
+    });
 }
 
 function overlayCharts() {
@@ -320,8 +478,8 @@ function overlayAddSelect(label, year, spendings, month) {
     if (month === undefined) { // year chart
         $('#select').append($('<div>').addClass('select-element year').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-year', year).click(function (e) {
             $('#select').children().removeClass('active');
-            $(e.target).addClass('active');
-            yearChart($(e.target).attr('data-year'));
+            $(e.currentTarget).addClass('active');
+            yearChart($(e.currentTarget).attr('data-year'));
             $('#add-chart').removeClass('hidden');
         }));
         $('#select-mobile > select').append($('<optgroup>').attr('label', label));
@@ -329,8 +487,8 @@ function overlayAddSelect(label, year, spendings, month) {
     } else { // month chart
         $('#select').append($('<div>').addClass('select-element').html(label).append($('<div>').addClass('right').html(spendings)).attr('data-month', month).attr('data-year', year).click(function (e) {
             $('#select').children().removeClass('active');
-            $(e.target).addClass('active');
-            monthChart($(e.target).attr('data-month'), $(e.target).attr('data-year'));
+            $(e.currentTarget).addClass('active');
+            monthChart($(e.currentTarget).attr('data-month'), $(e.currentTarget).attr('data-year'));
             $('#add-chart').addClass('hidden');
         }));
         $('#select-mobile > select > optgroup[label="' + year + '"]').append($('<option>').html(label + ' - ' + spendings).attr('data-month', month).attr('data-year', year));
@@ -560,6 +718,7 @@ function yearChart(year) {
 function processURL() {
     var location = window.location.search;
     var stats = false;
+    let trash = false;
     if (location !== null && location !== "") {
         var regYear = new RegExp("year=(\\d{4})");
         var regMonth = new RegExp("month=(\\d{1,2})");
@@ -576,6 +735,7 @@ function processURL() {
             datum.month(month[1] - 1);
         }
         stats = location.includes("statistics");
+        trash = location.includes("trash");
     }
     window.history.replaceState({
         "year": datum.year(),
@@ -591,6 +751,8 @@ function processURL() {
     }
     if (stats) {
         showStatsView();
+    } else if (trash) {
+        showTrashView();
     }
     console.log("END processURL");
 }
