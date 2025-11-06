@@ -57,6 +57,7 @@ if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
                         <span>☰</span>
                         <bar id="menu-overlay" class="bar-menu">
                             <div id="switch-to-stats">Statistiken</div>
+                            <div id="switch-to-search">Suchen</div>
                             <div id="switch-to-trash">Papierkorb</div>
                             <!-- <div>‹ Konto wechseln</div> -->
                             <div><a href="login.php?logout">Abmelden</a></div>

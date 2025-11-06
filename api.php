@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($mysqli->connect_error) {
         die('{"error":"server","msg":"Datenbankfehler: #' . $mysqli->connect_errno . ' ' . $mysqli->connect_error . '"}');
     }
-    
+
     $mysqli->set_charset('utf8');
 
     define('SECURE', true);
@@ -61,6 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
         case 'get_trashed':
             require 'api/get_trashed.php';
+            break;
+        case 'search':
+            require 'api/search.php';
             break;
         case 'restore':
             require 'api/restore.php';

@@ -78,6 +78,7 @@ $(document).ready(function () {
     $("#previous-month").click(vorherigerMonat);
     $("#switch-to-stats").click(showStatsView);
     $("#switch-to-trash").click(showTrashView);
+    $("#switch-to-search").click(showSearchView);
     $("#input-form").submit(function (e) {
         saveEntry();
         e.preventDefault();
@@ -254,6 +255,134 @@ function showStatsView() {
         "statistics": ""
     }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&statistics");
     overlayCharts();
+}
+
+// Show search view overlay
+function showSearchView() {
+    $('#content').css('display', 'none');
+    let overlay = $('#overlay');
+    overlay.empty();
+    overlaySearch();
+    overlay.css('display', 'flex');
+    window.history.pushState({
+        year: datum.year(),
+        month: datum.month(),
+        search: true
+    }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&search");
+}
+
+function overlaySearch() {
+    let tabBar = $('<div id="search-navbar" class="bar"></div>');
+    let subBar = $('<div class="bar-sub"></div>');
+    let searchIconBar = $('<bar class="bar-element icon-search"></bar>')
+    var $tabs = $('<div id="search-tabs" class="bar-collection"></div>');
+    let closeButton = $('<bar id="overlay-close" class="bar-element">&times;</bar>');
+
+    // top search input in navbar
+    let searchInputWrapper = $('<div class="bar-collection"></div>').css("flex-grow", "1");
+    let $searchInput = $('<input id="search-input" type="search" placeholder="Suche nach Art...">');
+    searchInputWrapper.append($searchInput);
+
+    subBar.append(searchInputWrapper);
+    tabBar.append(searchIconBar).append(subBar).append(closeButton);
+
+    $('#overlay').append(tabBar).append('<section id="search-section"></section>')
+    $("#overlay-close").click(showDataView);
+
+    // debounce helper
+    function debounce(fn, delay) {
+        let t;
+        return function() {
+            const args = arguments;
+            clearTimeout(t);
+            t = setTimeout(function() { fn.apply(null, args); }, delay);
+        };
+    }
+
+    function renderResults(data) {
+        // clear search-section
+        $('#search-section').empty();
+
+        var hasAus = data.ausgaben && data.ausgaben.length > 0;
+        var hasEin = data.einnahmen && data.einnahmen.length > 0;
+
+        if (!hasAus && !hasEin) {
+            // show single no-results message inside search-section
+            $('#search-section').append($('<div class="no-results">').text('Keine Treffer'));
+            return;
+        }
+
+        const headerHtml = `
+            <div class="th">
+                <div class="td td-datum">Datum</div>
+                <div class="td td-kategorie">Kategorie</div>
+                <div class="td td-art">Art</div>
+                <div class="td td-preis">Preis</div>
+                <div class="td td-beschreibung">Beschreibung</div>
+            </div>`;
+
+        if (hasAus) {
+            $('#search-section').append(`
+                <div id="search-ausgaben" class="search-block">
+                    <h3>Ausgaben</h3>
+                    ${headerHtml}
+                    <div id="search-results-ausgaben" class="search-rows"></div>
+                </div>
+            `);
+            let ausContainer = $('#search-results-ausgaben');
+            data.ausgaben.forEach(function(item) {
+                var $row = $('<div class="tr ausgabe"></div>');
+                $row.append('<div class="td td-datum">' + dateToLocal(item.datum) + '</div>');
+                $row.append('<div class="td td-kategorie">' + (item.kategorie || '') + '</div>');
+                $row.append('<div class="td td-art">' + item.art + '</div>');
+                $row.append('<div class="td td-preis">' + formatPreis(item.preis) + '</div>');
+                $row.append('<div class="td td-beschreibung">' + (item.beschreibung || '') + '</div>');
+                ausContainer.append($row);
+            });
+        }
+
+        if (hasEin) {
+            $('#search-section').append(`
+                <div id="search-einnahmen" class="search-block">
+                    <h3>Einnahmen</h3>
+                    ${headerHtml}
+                    <div id="search-results-einnahmen" class="search-rows"></div>
+                </div>
+            `);
+            let einContainer = $('#search-results-einnahmen');
+            data.einnahmen.forEach(function(item) {
+                var $row = $('<div class="tr ausgabe"></div>');
+                $row.append('<div class="td td-datum">' + dateToLocal(item.datum) + '</div>');
+                $row.append('<div class="td td-kategorie">' + (item.kategorie || '') + '</div>');
+                $row.append('<div class="td td-art">' + item.art + '</div>');
+                $row.append('<div class="td td-preis">' + formatPreis(item.preis) + '</div>');
+                $row.append('<div class="td td-beschreibung">' + (item.beschreibung || '') + '</div>');
+                einContainer.append($row);
+            });
+        }
+    }
+
+    function doSearch(q) {
+        if (!q || q.trim() === '') {
+            $('#search-section').empty();
+            return;
+        }
+        $.post('api.php', {action: 'search', q: q}).done(function(resp) {
+            try {
+                var data = JSON.parse(resp);
+                if (data.error !== undefined) {
+                    errorHandling(data);
+                } else {
+                    renderResults(data);
+                }
+            } catch (e) {
+                console.error('Invalid search response', e, resp);
+            }
+        });
+    }
+
+    var debounced = debounce(function(e) { doSearch(e.target.value); }, 300);
+    $searchInput.on('input', debounced);
 }
 
 function createStatsElements() {
