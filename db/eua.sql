@@ -131,6 +131,55 @@ CREATE TABLE `userkonto` (
 --
 -- Dumping routines for database 'eua'
 --
+/*!50003 DROP PROCEDURE IF EXISTS `getCategories` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCategories`(
+    IN mincount INT,
+    IN in_kontoid INT
+)
+BEGIN
+    SELECT kategorie FROM ausgabe WHERE trash=0 AND konto=in_kontoid AND kategorie IS NOT NULL GROUP BY kategorie HAVING COUNT(*) >= mincount ORDER BY kategorie ASC;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `jahresuebersichtKategorie` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `jahresuebersichtKategorie`(
+    IN in_jahr INT,
+    IN in_kategorie VARCHAR(100),
+    IN in_kontoid INT
+)
+BEGIN
+    IF in_kategorie IS NULL THEN
+        SELECT sum(preis) as preis, month(datum) as monat FROM ausgabe WHERE year(datum) = in_jahr AND kategorie IS NULL AND trash=0 AND konto=in_kontoid GROUP BY month(datum) ORDER BY monat ASC;
+    ELSE
+        SELECT sum(preis) as preis, month(datum) as monat FROM ausgabe WHERE year(datum) = in_jahr AND kategorie = in_kategorie AND trash=0 AND konto=in_kontoid GROUP BY month(datum) ORDER BY monat ASC;
+    END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `ausgabeLöschen` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;

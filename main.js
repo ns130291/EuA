@@ -626,7 +626,7 @@ function overlayAddSelect(label, year, spendings, month) {
 
 function addChart() {
     let year = $('.select-element.year.active');
-    if (year !== undefined) {
+    if (year.length > 0) {
         let category = $('#chart-category-select > select option:selected').attr('data-category');
         let postCategory = category;
         if (category === "Ohne Kategorie") {
@@ -645,7 +645,7 @@ function addChart() {
                     let ausgaben = json.ausgaben;
                     let series = [];
                     series[0] = {
-                        name: category,
+                        name: category + ' ' + currentYear,
                         data: []
                     };
                     for (let x in ausgaben) {
@@ -663,7 +663,7 @@ function addChart() {
                             type: 'column'
                         },
                         title: {
-                            text: category
+                            text: category + ' ' + currentYear
                         },
                         xAxis: {
                             categories: "Jan._Febr._Mrz._Apr._Mai_Jun._Jul._Aug._Sept._Okt._Nov._Dez.".split("_")
