@@ -778,6 +778,30 @@ content {
     min-height: 500px;
 }
 
+.additional-chart-wrapper {
+    position: relative;
+}
+
+.additional-chart-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 100;
+    background: none;
+    border: 1px solid #999;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 7px;
+    color: #666;
+}
+
+.additional-chart-close:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
 #chart-category-select {
     display: inline-block;
 }

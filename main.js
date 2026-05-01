@@ -33,6 +33,7 @@ var pendingUpdate = false;
 var dataDirty = false;
 
 var openMenuID = '';
+var additionalChartsCache = []; // shared across all years
 
 $(document).ready(function () {
     mainLoaded = true;
@@ -625,79 +626,98 @@ function overlayAddSelect(label, year, spendings, month) {
 }
 
 function addChart() {
-    let year = $('.select-element.year.active');
-    if (year !== undefined) {
+    let yearEl = $('.select-element.year.active');
+    if (yearEl.length > 0) {
         let category = $('#chart-category-select > select option:selected').attr('data-category');
-        let postCategory = category;
-        if (category === "Ohne Kategorie") {
-            postCategory = "null";
+        let currentYear = yearEl.attr('data-year');
+        if (additionalChartsCache.indexOf(category) === -1) {
+            additionalChartsCache.push(category);
+            renderSingleAdditionalChart(currentYear, category);
         }
-        let currentYear = year.attr('data-year');
-        $.post('api.php', {
-            action: 'get_overview_year_category',
-            jahr: currentYear,
-            kategorie: postCategory
-        }).done(function (data) {
-            let json = JSON.parse(data);
-            if (json['error'] === undefined) {
-                if (json.ausgaben) {
-                    let chartElement = $("<div>").appendTo($('#additional-charts')[0]);
-                    let ausgaben = json.ausgaben;
-                    let series = [];
-                    series[0] = {
-                        name: category,
-                        data: []
-                    };
-                    for (let x in ausgaben) {
-                        series[0].data[ausgaben[x].monat - 1] = parseFloat(ausgaben[x].preis);
-                    }
-                    for (let i = 0; i < 12; i++) {
-                        if (series[0].data[i] === undefined || series[0].data[i] === null) {
-                            series[0].data[i] = 0;
-                        }
-                    }
-
-                    new Highcharts.Chart({
-                        chart: {
-                            renderTo: $('#additional-charts div').last()[0],
-                            type: 'column'
-                        },
-                        title: {
-                            text: category
-                        },
-                        xAxis: {
-                            categories: "Jan._Febr._Mrz._Apr._Mai_Jun._Jul._Aug._Sept._Okt._Nov._Dez.".split("_")
-                        },
-                        yAxis: {
-                            title: {
-                                text: ''
-                            }
-                        },
-                        tooltip: {
-                            formatter: function () {
-                                return this.x + '<br/>' +
-                                        '<span style="color:' + this.series.color + '"> ● </span>' + this.series.name + ': <b>' + convertPreisToComma(this.point.y) + ' €</b><br/>' +
-                                        'Summe: ' + convertPreisToComma(this.point.stackTotal) + ' €';
-                            }
-                        },
-                        plotOptions: {
-                            column: {
-                                stacking: 'normal'
-                            }
-                        },
-                        series: series,
-                        credits: false
-                    });
-                }
-            } else {
-                errorHandling(json);
-            }
-        });
     }
+}
+
+function renderAdditionalCharts(year) {
+    $('#additional-charts').empty();
+    for (var i = 0; i < additionalChartsCache.length; i++) {
+        renderSingleAdditionalChart(year, additionalChartsCache[i]);
+    }
+}
+
+function renderSingleAdditionalChart(year, category) {
+    var postCategory = category === "Ohne Kategorie" ? "null" : category;
+    $.post('api.php', {
+        action: 'get_overview_year_category',
+        jahr: year,
+        kategorie: postCategory
+    }).done(function (data) {
+        let json = JSON.parse(data);
+        if (json['error'] === undefined) {
+            if (json.ausgaben) {
+                let ausgaben = json.ausgaben;
+                let series = [{
+                    name: category,
+                    data: []
+                }];
+                for (let x in ausgaben) {
+                    series[0].data[ausgaben[x].monat - 1] = parseFloat(ausgaben[x].preis);
+                }
+                for (let i = 0; i < 12; i++) {
+                    if (series[0].data[i] === undefined || series[0].data[i] === null) {
+                        series[0].data[i] = 0;
+                    }
+                }
+
+                let wrapper = $('<div>').addClass('additional-chart-wrapper').attr('data-category', category);
+                let closeBtn = $('<button>').addClass('additional-chart-close').html('&times;').click(function () {
+                    additionalChartsCache = additionalChartsCache.filter(function (c) { return c !== category; });
+                    wrapper.remove();
+                });
+                let chartDiv = $('<div>').addClass('chart');
+                wrapper.append(closeBtn).append(chartDiv);
+                $('#additional-charts').append(wrapper);
+
+                new Highcharts.Chart({
+                    chart: {
+                        renderTo: chartDiv[0],
+                        type: 'column'
+                    },
+                    title: {
+                        text: category
+                    },
+                    xAxis: {
+                        categories: "Jan._Febr._Mrz._Apr._Mai_Jun._Jul._Aug._Sept._Okt._Nov._Dez.".split("_")
+                    },
+                    yAxis: {
+                        title: {
+                            text: ''
+                        }
+                    },
+                    tooltip: {
+                        formatter: function () {
+                            return this.x + '<br/>' +
+                                    '<span style="color:' + this.series.color + '"> ● </span>' + this.series.name + ': <b>' + convertPreisToComma(this.point.y) + ' €</b><br/>' +
+                                    'Summe: ' + convertPreisToComma(this.point.stackTotal) + ' €';
+                        }
+                    },
+                    plotOptions: {
+                        column: {
+                            stacking: 'normal'
+                        }
+                    },
+                    series: series,
+                    credits: false
+                });
+            }
+        } else {
+            errorHandling(json);
+        }
+    });
 }
 
 function monthChart(month, year) {
     $('#stats > .chart').empty();
+    $('#additional-charts').empty();
     $.post('api.php', {
         action: 'get_overview_month',
         monat: month,
@@ -856,6 +876,7 @@ function yearChart(year) {
                     series: series,
                     credits: false
                 });
+                renderAdditionalCharts(year);
             }
         } else {
             errorHandling(json);
