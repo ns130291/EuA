@@ -762,11 +762,17 @@ function monthChart(month, year) {
 
 function yearChart(year) {
     $('#stats > .chart').empty();
-    $.post('api.php', {
+    var spendingsReq = $.post('api.php', {
         action: 'get_overview_year',
         jahr: year
-    }).done(function (data) {
-        var json = JSON.parse(data);
+    });
+    var earningsReq = $.post('api.php', {
+        action: 'get_overview_year_earnings',
+        jahr: year
+    });
+    $.when(spendingsReq, earningsReq).done(function (spendingsResponse, earningsResponse) {
+        var json = JSON.parse(spendingsResponse[0]);
+        var earningsJson = JSON.parse(earningsResponse[0]);
         if (json['error'] === undefined) {
             if (json.ausgaben) {
                 var ausgaben = json.ausgaben;
@@ -784,12 +790,14 @@ function yearChart(year) {
                         if (kategorie === null || kategorie === "") {
                             series[i] = {
                                 name: 'Ohne Kategorie',
-                                data: []
+                                data: [],
+                                stack: 'spendings'
                             };
                         } else {
                             series[i] = {
                                 name: kategorie,
-                                data: []
+                                data: [],
+                                stack: 'spendings'
                             };
                         }
                     }
@@ -802,6 +810,19 @@ function yearChart(year) {
                             series[x].data[i] = 0;
                         }
                     }
+                }
+
+                if (earningsJson['error'] === undefined && earningsJson.einnahmen) {
+                    var earningsData = new Array(12).fill(0);
+                    for (var e in earningsJson.einnahmen) {
+                        earningsData[earningsJson.einnahmen[e].monat - 1] = parseFloat(earningsJson.einnahmen[e].preis);
+                    }
+                    series.push({
+                        name: 'Einnahmen',
+                        data: earningsData,
+                        stack: 'earnings',
+                        color: '#2ecc71'
+                    });
                 }
 
                 chart = new Highcharts.Chart({

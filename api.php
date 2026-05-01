@@ -47,6 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         case 'get_overview_year':
             require 'api/get_overview_year.php';
             break;
+        case 'get_overview_year_earnings':
+            require 'api/get_overview_year_earnings.php';
+            break;
         case 'get_overview_year_category':
             require 'api/get_overview_year_category.php';
             break;
