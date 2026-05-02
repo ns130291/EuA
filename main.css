@@ -535,6 +535,10 @@ content {
     color: white;
 }
 
+.tr-kb-focus {
+    background-color: #cce8ff;
+}
+
 .td {
     vertical-align: top;
     padding-top: 5px;

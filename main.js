@@ -35,6 +35,8 @@ var dataDirty = false;
 var openMenuID = '';
 var additionalChartsCache = []; // shared across all years
 var searchData = {ausgaben: [], einnahmen: []};
+var keyboardFocusedIndex = -1;
+var kbFocusedBeforeEdit = -1;
 
 $(document).ready(function () {
     mainLoaded = true;
@@ -84,6 +86,9 @@ $(document).ready(function () {
     $("#input-form").submit(function (e) {
         saveEntry();
         e.preventDefault();
+    });
+    $("#input-form").on('focusin', 'input', function() {
+        clearKeyboardFocus();
     });
     $("#spendings").click(function () {
         $("#earnings").removeClass("active");
@@ -187,7 +192,160 @@ $(document).ready(function () {
             holeDaten();
         });
     });
+
+    // Clear keyboard row focus on any UI click
+    document.addEventListener('click', function() {
+        clearKeyboardFocus();
+    });
+
+    // ── Keyboard navigation for the main list ──────────────────────────────
+    document.addEventListener('keydown', function(e) {
+        // Only active when the main data view is visible
+        if ($('#content').css('display') === 'none') return;
+
+        var activeEl = document.activeElement;
+        var isInNewEntryForm = !!(activeEl && $(activeEl).closest('#input-form').length);
+
+        // When any row is being edited, block all navigation.
+        // Also handle ESC here in case focus has left the row.
+        var editingRow = document.querySelector('#ausgabenliste .ausgabe.tr-edit');
+        if (editingRow) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                var cancelBtn = editingRow.querySelector('.cancel');
+                if (cancelBtn) cancelBtn.click();
+            }
+            return;
+        }
+
+        // When focus is inside the new-entry form, only intercept ArrowUp and Escape
+        if (isInNewEntryForm) {
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                var rows = getListRows();
+                if (rows.length > 0) {
+                    activeEl.blur();
+                    setKeyboardFocus(rows.length - 1);
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                activeEl.blur();
+            }
+            return;
+        }
+
+        // ── Free navigation (no input focused) ──
+        var rows = getListRows();
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                if (rows.length === 0) {
+                    $('#input-datum').focus();
+                } else if (keyboardFocusedIndex === -1) {
+                    setKeyboardFocus(0);
+                } else if (keyboardFocusedIndex < rows.length - 1) {
+                    setKeyboardFocus(keyboardFocusedIndex + 1);
+                } else {
+                    // past last item → jump to new-entry form
+                    clearKeyboardFocus();
+                    $('#input-datum').focus();
+                }
+                break;
+
+            case 'ArrowUp':
+                e.preventDefault();
+                if (keyboardFocusedIndex > 0) {
+                    setKeyboardFocus(keyboardFocusedIndex - 1);
+                } else if (keyboardFocusedIndex === -1 && rows.length > 0) {
+                    setKeyboardFocus(rows.length - 1);
+                }
+                // at first item → stay there
+                break;
+
+            case 'Enter':
+                if (keyboardFocusedIndex !== -1) {
+                    e.preventDefault();
+                    var row = rows[keyboardFocusedIndex];
+                    var editBtn = row ? row.querySelector('.edit') : null;
+                    if (editBtn) {
+                        kbFocusedBeforeEdit = keyboardFocusedIndex;
+                        clearKeyboardFocus();
+                        editBtn.click();
+                    }
+                }
+                break;
+
+            case 'Backspace':
+            case 'Delete':
+                if (keyboardFocusedIndex !== -1) {
+                    e.preventDefault();
+                    var savedIndex = keyboardFocusedIndex;
+                    var rowToDelete = rows[savedIndex];
+                    if (rowToDelete) {
+                        clearKeyboardFocus();
+                        rowToDelete.querySelector('.remove').click();
+                        // Restore focus after the 1.5 s removal animation
+                        setTimeout(function() {
+                            var newRows = getListRows();
+                            if (newRows.length > 0) {
+                                setKeyboardFocus(Math.min(savedIndex, newRows.length - 1));
+                            }
+                        }, 1600);
+                    }
+                }
+                break;
+
+            case 'ArrowLeft':
+                e.preventDefault();
+                vorherigerMonat();
+                break;
+
+            case 'ArrowRight':
+                e.preventDefault();
+                naechsterMonat();
+                break;
+
+            case 'a':
+            case 'A':
+                e.preventDefault();
+                $("#earnings").removeClass("active");
+                $("#spendings").addClass("active");
+                switchView("spendings");
+                break;
+
+            case 'e':
+            case 'E':
+                e.preventDefault();
+                $("#spendings").removeClass("active");
+                $("#earnings").addClass("active");
+                switchView("earnings");
+                break;
+        }
+    });
 });
+
+function getListRows() {
+    return Array.from(document.querySelectorAll('#ausgabenliste .ausgabe'));
+}
+
+function setKeyboardFocus(index) {
+    var rows = getListRows();
+    rows.forEach(function(r) { r.classList.remove('tr-kb-focus'); });
+    if (index >= 0 && index < rows.length) {
+        keyboardFocusedIndex = index;
+        rows[index].classList.add('tr-kb-focus');
+        rows[index].scrollIntoView({ block: 'nearest' });
+    } else {
+        keyboardFocusedIndex = -1;
+    }
+}
+
+function clearKeyboardFocus() {
+    var rows = getListRows();
+    rows.forEach(function(r) { r.classList.remove('tr-kb-focus'); });
+    keyboardFocusedIndex = -1;
+}
 
 function closeMenu(ev) {
     if (ev.target.id != openMenuID) {
@@ -228,6 +386,7 @@ function back(e) {
 }
 
 function showDataView() {
+    clearKeyboardFocus();
     if (dataDirty) {
         loadingScreen();
         holeDaten(function () {
@@ -1064,6 +1223,7 @@ function loadingScreen() {
 }
 
 function datenAnzeigen() {
+    clearKeyboardFocus();
     setSpendings(parseFloat(json['summeausgaben']));
     setEarnings(parseFloat(json['summeeinnahmen']));
 
@@ -1141,6 +1301,9 @@ function removeEntry(e) {
             if (json.deleted === 'true') {
                 $(ausgabenElement).on('transitionend', function () {
                     document.getElementById("ausgabenliste").removeChild(ausgabenElement);
+                    if (isEmpty($('#ausgabenliste'))) {
+                        showEmpty();
+                    }
                 });
                 $(ausgabenElement).addClass('remove-animation');
 
@@ -1151,10 +1314,6 @@ function removeEntry(e) {
                 }
 
                 // TODO remove from json object
-
-                if (isEmpty($('#ausgabenliste'))) {
-                    showEmpty();
-                }
             }
         } else {
             errorHandling(json);
@@ -1512,6 +1671,10 @@ function editEntry(e) {
 
     ausgabenElement.classList.add("tr-edit");
 
+    // Auto-focus first input so the row's own keydown handler receives events
+    var firstInput = ausgabenElement.querySelector('.td-datum input');
+    if (firstInput) firstInput.focus();
+
     function onKeyDown(ev) {
         if (ev.key === 'Enter') {
             ev.preventDefault();
@@ -1717,6 +1880,15 @@ function reAddEditControls(ausgabenElement) {
     $(ausgabenElement).children('.td-optionen').children('.change').remove();
     $(ausgabenElement).children('.td-optionen').children().css('display', '');
     ausgabenElement.classList.remove("tr-edit");
+    // Restore keyboard focus if the edit was keyboard-initiated
+    if (kbFocusedBeforeEdit !== -1) {
+        var savedIdx = kbFocusedBeforeEdit;
+        kbFocusedBeforeEdit = -1;
+        var rows = getListRows();
+        if (savedIdx < rows.length) {
+            setKeyboardFocus(savedIdx);
+        }
+    }
 }
 
 function removeEditControls(tdOptionen) {
