@@ -34,6 +34,7 @@ var dataDirty = false;
 
 var openMenuID = '';
 var additionalChartsCache = []; // shared across all years
+var searchData = {ausgaben: [], einnahmen: []};
 
 $(document).ready(function () {
     mainLoaded = true;
@@ -79,7 +80,7 @@ $(document).ready(function () {
     $("#previous-month").click(vorherigerMonat);
     $("#switch-to-stats").click(showStatsView);
     $("#switch-to-trash").click(showTrashView);
-    $("#switch-to-search").click(showSearchView);
+    $("#switch-to-search").click(function() { showSearchView(); });
     $("#input-form").submit(function (e) {
         saveEntry();
         e.preventDefault();
@@ -217,6 +218,8 @@ function back(e) {
     }
     if (state !== null && state.statistics !== undefined) {
         showStatsView();
+    } else if (state !== null && state.search !== undefined) {
+        showSearchView(typeof state.query === 'string' ? state.query : undefined);
     } else {
         showDataView();
         loadingScreen();
@@ -259,20 +262,25 @@ function showStatsView() {
 }
 
 // Show search view overlay
-function showSearchView() {
+function showSearchView(query) {
+    if (typeof query !== 'string') {
+        query = '';
+    }
     $('#content').css('display', 'none');
     let overlay = $('#overlay');
     overlay.empty();
-    overlaySearch();
+    overlaySearch(query);
     overlay.css('display', 'flex');
+    var searchUrl = "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&search=" + encodeURIComponent(query);
     window.history.pushState({
         year: datum.year(),
         month: datum.month(),
-        search: true
-    }, "", "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&search");
+        search: true,
+        query: query
+    }, "", searchUrl);
 }
 
-function overlaySearch() {
+function overlaySearch(initialQuery) {
     let tabBar = $('<div id="search-navbar" class="bar"></div>');
     let subBar = $('<div class="bar-sub"></div>');
     let searchIconBar = $('<bar class="bar-element icon-search"></bar>')
@@ -290,6 +298,10 @@ function overlaySearch() {
     $('#overlay').append(tabBar).append('<section id="search-section"></section>')
     $("#overlay-close").click(showDataView);
 
+    if (initialQuery) {
+        $searchInput.val(initialQuery);
+    }
+
     // debounce helper
     function debounce(fn, delay) {
         let t;
@@ -303,6 +315,10 @@ function overlaySearch() {
     function renderResults(data) {
         // clear search-section
         $('#search-section').empty();
+
+        // store data for edit lookups
+        searchData.ausgaben = data.ausgaben || [];
+        searchData.einnahmen = data.einnahmen || [];
 
         var hasAus = data.ausgaben && data.ausgaben.length > 0;
         var hasEin = data.einnahmen && data.einnahmen.length > 0;
@@ -320,6 +336,7 @@ function overlaySearch() {
                 <div class="td td-art">Art</div>
                 <div class="td td-preis">Preis</div>
                 <div class="td td-beschreibung">Beschreibung</div>
+                <div class="td td-optionen"></div>
             </div>`;
 
         if (hasAus) {
@@ -332,13 +349,19 @@ function overlaySearch() {
             `);
             let ausContainer = $('#search-results-ausgaben');
             data.ausgaben.forEach(function(item) {
-                var $row = $('<div class="tr ausgabe"></div>');
-                $row.append('<div class="td td-datum">' + dateToLocal(item.datum) + '</div>');
-                $row.append('<div class="td td-kategorie">' + (item.kategorie || '') + '</div>');
-                $row.append('<div class="td td-art">' + item.art + '</div>');
-                $row.append('<div class="td td-preis">' + formatPreis(item.preis) + '</div>');
-                $row.append('<div class="td td-beschreibung">' + (item.beschreibung || '') + '</div>');
-                ausContainer.append($row);
+                var element = document.createElement('div');
+                element.className = 'tr ausgabe';
+                element.setAttribute('data-id', item.idausgabe);
+                element.setAttribute('data-type', 'ausgabe');
+                element.innerHTML =
+                    '<div class="td td-datum">' + dateToLocal(item.datum) + '</div>' +
+                    '<div class="td td-kategorie">' + (item.kategorie || '') + '</div>' +
+                    '<div class="td td-art">' + item.art + '</div>' +
+                    '<div class="preis td td-preis">' + formatPreis(item.preis) + '</div>' +
+                    '<div class="td td-beschreibung">' + (item.beschreibung || '') + '</div>' +
+                    '<div class="td td-optionen"><div class="edit icon-pencil"></div></div>';
+                element.getElementsByClassName('edit')[0].addEventListener('click', editEntry, false);
+                ausContainer.append(element);
             });
         }
 
@@ -352,13 +375,19 @@ function overlaySearch() {
             `);
             let einContainer = $('#search-results-einnahmen');
             data.einnahmen.forEach(function(item) {
-                var $row = $('<div class="tr ausgabe"></div>');
-                $row.append('<div class="td td-datum">' + dateToLocal(item.datum) + '</div>');
-                $row.append('<div class="td td-kategorie">' + (item.kategorie || '') + '</div>');
-                $row.append('<div class="td td-art">' + item.art + '</div>');
-                $row.append('<div class="td td-preis">' + formatPreis(item.preis) + '</div>');
-                $row.append('<div class="td td-beschreibung">' + (item.beschreibung || '') + '</div>');
-                einContainer.append($row);
+                var element = document.createElement('div');
+                element.className = 'tr ausgabe';
+                element.setAttribute('data-id', item.ideinnahme);
+                element.setAttribute('data-type', 'einnahme');
+                element.innerHTML =
+                    '<div class="td td-datum">' + dateToLocal(item.datum) + '</div>' +
+                    '<div class="td td-kategorie">' + (item.kategorie || '') + '</div>' +
+                    '<div class="td td-art">' + item.art + '</div>' +
+                    '<div class="preis td td-preis">' + formatPreis(item.preis) + '</div>' +
+                    '<div class="td td-beschreibung">' + (item.beschreibung || '') + '</div>' +
+                    '<div class="td td-optionen"><div class="edit icon-pencil"></div></div>';
+                element.getElementsByClassName('edit')[0].addEventListener('click', editEntry, false);
+                einContainer.append(element);
             });
         }
     }
@@ -382,8 +411,22 @@ function overlaySearch() {
         });
     }
 
-    var debounced = debounce(function(e) { doSearch(e.target.value); }, 300);
+    var debounced = debounce(function(e) {
+        var q = e.target.value;
+        doSearch(q);
+        var url = "index.php?year=" + datum.year() + "&month=" + (datum.month() + 1) + "&search=" + encodeURIComponent(q);
+        window.history.replaceState({
+            year: datum.year(),
+            month: datum.month(),
+            search: true,
+            query: q
+        }, "", url);
+    }, 300);
     $searchInput.on('input', debounced);
+
+    if (initialQuery) {
+        doSearch(initialQuery);
+    }
 }
 
 function createStatsElements() {
@@ -890,6 +933,8 @@ function processURL() {
     var location = window.location.search;
     var stats = false;
     let trash = false;
+    var search = false;
+    var searchQuery = '';
     if (location !== null && location !== "") {
         var regYear = new RegExp("year=(\\d{4})");
         var regMonth = new RegExp("month=(\\d{1,2})");
@@ -907,6 +952,10 @@ function processURL() {
         }
         stats = location.includes("statistics");
         trash = location.includes("trash");
+        var regSearch = new RegExp("[?&]search(?:=([^&]*))?");
+        var searchMatch = regSearch.exec(location);
+        search = searchMatch !== null;
+        searchQuery = searchMatch ? decodeURIComponent(searchMatch[1] || '') : '';
     }
     window.history.replaceState({
         "year": datum.year(),
@@ -924,6 +973,8 @@ function processURL() {
         showStatsView();
     } else if (trash) {
         showTrashView();
+    } else if (search) {
+        showSearchView(searchQuery);
     }
     console.log("END processURL");
 }
@@ -1407,8 +1458,12 @@ function createRow(id, datum, kategorie, art, preis, beschreibung) {
     return element;
 }
 
-function getDataFromJSON(id) {
-    if (currentView === "spendings") {
+function getDataFromJSON(id, type) {
+    if (type === 'ausgabe') {
+        return searchData.ausgaben.find(entry => entry.idausgabe === id);
+    } else if (type === 'einnahme') {
+        return searchData.einnahmen.find(entry => entry.ideinnahme === id);
+    } else if (currentView === "spendings") {
         return json['ausgaben'].find(entry => entry.idausgabe === id);
     } else {
         return json['einnahmen'].find(entry => entry.ideinnahme === id);
@@ -1420,7 +1475,8 @@ function editEntry(e) {
     var ausgabenElement = el.parentNode.parentNode;
 
     let dataID = ausgabenElement.getAttribute('data-id');
-    let data = getDataFromJSON(dataID);
+    let entryType = ausgabenElement.getAttribute('data-type');
+    let data = getDataFromJSON(dataID, entryType);
     console.log(data);  // TODO remove
 
     hideEditControls(el.parentNode);
@@ -1455,6 +1511,19 @@ function editEntry(e) {
             });
 
     ausgabenElement.classList.add("tr-edit");
+
+    function onKeyDown(ev) {
+        if (ev.key === 'Enter') {
+            ev.preventDefault();
+            ausgabenElement.removeEventListener('keydown', onKeyDown);
+            update.click();
+        } else if (ev.key === 'Escape') {
+            ev.preventDefault();
+            ausgabenElement.removeEventListener('keydown', onKeyDown);
+            cancel.click();
+        }
+    }
+    ausgabenElement.addEventListener('keydown', onKeyDown);
 }
 
 function cancelEditEntry(e) {
@@ -1465,7 +1534,8 @@ function cancelEditEntry(e) {
     reAddEditControls(trAusgabe);
 
     let dataID = trAusgabe.getAttribute('data-id');
-    let data = getDataFromJSON(dataID);
+    let entryType = trAusgabe.getAttribute('data-type');
+    let data = getDataFromJSON(dataID, entryType);
     console.log(data);  // TODO remove
 
     [...trAusgabe.querySelectorAll('div.td')]
@@ -1497,7 +1567,8 @@ function updateEntry(e) {
     deleteError(id);
 
     let dataID = ausgabenElement.getAttribute('data-id');
-    let oldData = getDataFromJSON(dataID);
+    let entryType = ausgabenElement.getAttribute('data-type'); // 'ausgabe', 'einnahme', or null for monthly view
+    let oldData = getDataFromJSON(dataID, entryType);
     console.log(oldData);  // TODO remove
 
     var params = {};
@@ -1547,13 +1618,14 @@ function updateEntry(e) {
         fehlerAnzeigen(error, id);
         reAddEditControls(ausgabenElement);
     } else if (Object.keys(params).length > 0) {
-        if (currentView === "spendings") {
-            params.idausgabe = id;
-        } else {
+        var isEarnings = entryType === 'einnahme' || (!entryType && currentView === "earnings");
+        if (isEarnings) {
             params.ideinnahme = id;
+        } else {
+            params.idausgabe = id;
         }
         params.action = 'edit';
-        params.entrytype = currentView;
+        params.entrytype = isEarnings ? 'earnings' : 'spendings';
         console.log(params);
         $.post("api.php", params).done(function (result) {
             var json = JSON.parse(result);
@@ -1574,10 +1646,10 @@ function updateEntry(e) {
                 if(params.beschreibung !== undefined) {
                     oldData.beschreibung = params.beschreibung;
                 }
-                console.log(getDataFromJSON(dataID));
+                console.log(getDataFromJSON(dataID, entryType));
 
                 var sameMonth = true;
-                if (params.datum !== undefined) {
+                if (!entryType && params.datum !== undefined) {
                     var datumM;
                     if (params.datum.split("-")[0].length < 4) {
                         datumM = moment(params.datum, "YY-M-D");
@@ -1609,21 +1681,23 @@ function updateEntry(e) {
                         }
                     }
 
-                    if (params.preis) {
-                        var preisAlt = convertPreisToPoint(oldData.preis);
-                        var preisNeu = convertPreisToPoint(params.preis);
-                        var change = -preisAlt + preisNeu;
-                        if (currentView === "spendings") {
-                            addSpendings(parseFloat(change));
-                        } else {
-                            addEarnings(parseFloat(change));
+                    if (!entryType) {
+                        if (params.preis) {
+                            var preisAlt = convertPreisToPoint(oldData.preis);
+                            var preisNeu = convertPreisToPoint(params.preis);
+                            var change = -preisAlt + preisNeu;
+                            if (currentView === "spendings") {
+                                addSpendings(parseFloat(change));
+                            } else {
+                                addEarnings(parseFloat(change));
+                            }
                         }
-                    }
 
-                    if (currentView === "spendings") {
-                        changeSpending(params);
-                    } else {
-                        changeEarning(params);
+                        if (currentView === "spendings") {
+                            changeSpending(params);
+                        } else {
+                            changeEarning(params);
+                        }
                     }
 
                     reAddEditControls(ausgabenElement);
