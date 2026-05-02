@@ -29,7 +29,6 @@ var datum = moment();
 var chart = null;
 var currentView = "spendings";
 var mainLoaded = false;
-var pendingUpdate = false;
 var dataDirty = false;
 
 var openMenuID = '';
@@ -38,21 +37,15 @@ var additionalChartsCache = []; // shared across all years
 $(document).ready(function () {
     mainLoaded = true;
 
-    window.visualViewport.addEventListener("resize", ev => {
-        if (pendingUpdate) {
-            return;
-        }
-        pendingUpdate = true;
-
-        requestAnimationFrame(() => {
-            pendingUpdate = false;
-            let content = document.querySelector('#content');
-            if (content) {
-                let viewport = ev.target;
-                content.style.height = viewport.height + "px";
-                console.log("Viewport Height " + viewport.height);
-            }
-        });
+    window.visualViewport.addEventListener("resize", () => {
+        const vv = window.visualViewport;
+        // How far the visual viewport's bottom is above the layout viewport's bottom.
+        // This is the actual height taken up by a keyboard toolbar or soft keyboard
+        // that is NOT already reflected in window.innerHeight / the layout viewport.
+        // Using this offset (rather than vv.height directly) prevents double-subtraction
+        // on iOS versions where the layout viewport already shrinks with the keyboard.
+        const offsetFromBottom = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+        document.documentElement.style.setProperty('--vv-bottom-offset', offsetFromBottom + 'px');
     });
 
     window.visualViewport.addEventListener("scroll", ev => {

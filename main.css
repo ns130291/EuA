@@ -456,7 +456,7 @@ content {
 }
 
 #content {
-    height: 100%;
+    height: calc(100% - var(--vv-bottom-offset, 0px));
     display: flex;
     flex-direction: column;
 }
