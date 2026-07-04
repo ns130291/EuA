@@ -1453,8 +1453,21 @@ function saveEntryRequest(entry) {
             $('#empty').remove();
             var element = createRow(json['id'], entry.datum, entry.kategorie, entry.art, entry.preisDB, entry.beschreibung);
             element.className += " new";
-            //TODO: insert new Ausgabe at the appropriate position
-            document.getElementById("ausgabenliste").appendChild(element);
+            var list = document.getElementById("ausgabenliste");
+            var rows = list.querySelectorAll(".ausgabe");
+            var inserted = false;
+            for (var i = 0; i < rows.length; i++) {
+                var rowDatumLocal = rows[i].querySelector(".td-datum").textContent;
+                var rowDatumDB = localToDate(rowDatumLocal);
+                if (entry.datumDB < rowDatumDB) {
+                    list.insertBefore(element, rows[i]);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) {
+                list.appendChild(element);
+            }
             $('.ausgabe[data-id=' + json['id'] + ']')[0].scrollIntoView();
 
             if (json['entrytype'] === 'earnings') {
