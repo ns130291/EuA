@@ -1959,6 +1959,7 @@ function convertPreisToComma(preis) {
 }
 
 function convertPreisToNumber(preis) {
+    preis += '';
     if (preis.lastIndexOf('.') > preis.lastIndexOf(',')) { // e.g. 1,000.543
         preis = preis.replace(',', '');
     } else if (preis.lastIndexOf('.') < preis.lastIndexOf(',')) { // e.g 1.000,543
