@@ -1923,12 +1923,14 @@ function prettifyDate() {
     }
     if (inDate.length >= 3 && splitChar !== '-') {
         if (occurrences(inDate, splitChar) === 1) {
-            let outDate = moment(inDate, "D" + splitChar + "M").year(moment().year()).format("DD.MM.YYYY");
+            let tempDate = moment(inDate, "D" + splitChar + "M");
+            tempDate.year(guessYearForMonth(tempDate.month() + 1));
+            let outDate = tempDate.format("DD.MM.YYYY");
             $("#input-datum").val(outDate);
         } else if (occurrences(inDate, splitChar) === 2) {
             let tempDate = moment(inDate, "D" + splitChar + "M" + splitChar + "YYYY");
             if (tempDate.year() == 0) {
-                tempDate.year(moment().year());
+                tempDate.year(guessYearForMonth(tempDate.month() + 1));
             }
             let outDate = tempDate.format("DD.MM.YYYY");
             $("#input-datum").val(outDate);
@@ -1937,6 +1939,28 @@ function prettifyDate() {
         let outDate = moment(inDate, "YYYY" + splitChar + "M" + splitChar + "D").format("DD.MM.YYYY");
         $("#input-datum").val(outDate);
     }
+}
+
+/**
+ * Guess the most plausible year for a date where the user only entered day and month.
+ * If the given month lies ahead of the current month, the entry most likely refers to
+ * that month in the previous year (e.g. entering "12" for December while currently in
+ * January) - unless it is just one month ahead, which is treated as a near-future entry
+ * in the current year. This keeps the resulting date within the last 10 months whenever
+ * the month would otherwise land in the future.
+ * @param {Number} month Month of the entered date (1-12)
+ * @return {Number} The year that should be used for this month
+ */
+function guessYearForMonth(month) {
+    let now = moment();
+    let currentMonth = now.month() + 1;
+    if (month > currentMonth) {
+        let backDistance = 12 - (month - currentMonth);
+        if (backDistance <= 10) {
+            return now.year() - 1;
+        }
+    }
+    return now.year();
 }
 
 function convertPreisToPoint(preis) {
