@@ -1,5 +1,6 @@
 <?php
 
+mysqli_report(MYSQLI_REPORT_OFF); // PHP >= 8.1 throws by default; this code checks return values
 session_start();
 if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
     $hostname = $_SERVER['HTTP_HOST'];
